@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Test Audio</title>
+  <link rel="stylesheet" href="/frontend/css/styles.css" />
+</head>
+<body data-page="audio-test" data-theme="midnight">
+  <div class="app-shell">
+    <!-- SIDEBAR -->
+
+    <main class="main-content">
+      <header class="hero-header glass-card">
+        <div class="hero-header-text">
+          <p class="eyebrow">Test isolé</p>
+          <h1>Test audio</h1>
+          <p class="subtitle">
+            Cette page permet de tester un court enregistrement réel avec différents moteurs,
+            sans remplacer la dictée actuelle.
+          </p>
+        </div>
+      </header>
+
+      <section class="glass-card settings-card audio-test-card">
+        <div class="settings-form-grid">
+          <div class="settings-field">
+            <label for="fwProvider">Moteur de test</label>
+            <select id="fwProvider" class="settings-select">
+              <option value="faster-whisper">faster-whisper base (local)</option>
+              <option value="deepgram">Deepgram Nova-3 (API)</option>
+              <option value="assemblyai">AssemblyAI Universal Streaming (API)</option>
+            </select>
+          </div>
+
+          <div class="settings-field">
+            <label for="fwTestLanguage">Langue</label>
+            <select id="fwTestLanguage" class="settings-select">
+              <option value="fr" selected>Français</option>
+              <option value="en">Anglais</option>
+            </select>
+          </div>
+
+          <div class="settings-field settings-field-full">
+            <label for="fwTestDevice">Microphone</label>
+            <select id="fwTestDevice" class="settings-select">
+              <option value="">Chargement des micros...</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="mail-actions audio-test-actions">
+          <button class="action-button send-button" id="fwStartBtn" type="button">Démarrer l'enregistrement</button>
+          <button class="action-button secondary-button" id="fwStopBtn" type="button" disabled>Arrêter</button>
+        </div>
+
+        <p class="section-note" id="fwStatus" style="margin-top: 1rem;">Prêt pour un test court de 3 à 6 secondes.</p>
+        <p class="section-note" id="fwPrompt" style="margin-top: 0.75rem;">
+          Phrase conseillée : « Bonjour, j’aimerais vérifier l’horaire du rendez-vous prévu à l’école. Où en êtes-vous ? Il a été déplacé jeudi, après-demain, à dix heures, près de l’entrée. »
+        </p>
+      </section>
+
+      <section class="glass-card settings-card" style="margin-top: 1rem;">
+        <span class="section-tag">Résultat final</span>
+        <pre id="fwFinalText">Aucun résultat pour le moment.</pre>
+      </section>
+
+      <section class="glass-card settings-card" style="margin-top: 1rem;">
+        <span class="section-tag">Partiels</span>
+        <pre id="fwPartials">Aucun partiel pour le moment.</pre>
+      </section>
+
+      <section class="glass-card settings-card" style="margin-top: 1rem;">
+        <span class="section-tag">Métriques</span>
+        <pre id="fwMetrics">Aucune métrique pour le moment.</pre>
+      </section>
+    </main>
+  </div>
+  <script src="/frontend/js/sidebar.js"></script>
+  <script src="/frontend/js/audioTest.js"></script>
+</body>
+</html>

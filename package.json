@@ -1,0 +1,24 @@
+{
+  "name": "agent-mail-assistant",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node backend/src/server.js",
+    "send:test-gmail-dataset": "node backend/scripts/send-gmail-test-dataset.js",
+    "reset:test-gmail-mailbox": "node backend/scripts/reset-gmail-test-mailbox.js",
+    "test:llm-context": "node backend/scripts/evaluate-llm-context-sufficiency.js",
+    "seed:mail-rules": "node backend/scripts/seed-general-mail-rules.js",
+    "test:llm-dataset": "node backend/scripts/run-llm-dataset-diagnostics.js",
+    "build:predictive-dictionaries": "node backend/scripts/build-predictive-dictionaries.js"
+  },
+  "dependencies": {
+    "@deepgram/sdk": "^5.0.0",
+    "dotenv": "^17.3.1",
+    "imapflow": "^1.2.16",
+    "mailparser": "^3.9.4",
+    "nodemailer": "^8.0.2",
+    "openai": "^6.27.0",
+    "pdfjs-dist": "^5.6.205",
+    "validator": "^13.15.35"
+  }
+}

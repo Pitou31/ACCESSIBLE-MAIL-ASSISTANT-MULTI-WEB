@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Espace administrateur privé</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Inter:wght@400;500;600;700;800&family=Lexend:wght@400;500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/frontend/css/styles.css" />
+</head>
+<body data-theme="midnight">
+  <div class="app-shell">
+    <!-- SIDEBAR -->
+
+    <main class="main-content">
+      <header class="hero-header glass-card">
+        <div class="hero-header-text">
+          <p class="eyebrow">Administration</p>
+          <h1>Espace administrateur prive</h1>
+          <p class="subtitle">Outil de controle de la base utilisateurs. Cette page permet de verifier les demandes, activer les comptes et modifier leurs statuts.</p>
+        </div>
+      </header>
+
+      <section class="settings-toolbar glass-card">
+        <div>
+          <span class="section-tag">Outils</span>
+          <h3>Controle des demandes et des comptes</h3>
+          <p class="section-note">Premiere version privee, utile pour verifier et modifier la BDD sans passer par un outil externe.</p>
+        </div>
+
+        <div class="mail-actions">
+          <a class="action-button" href="/frontend/admin-bootstrap.html">Bootstrap admin</a>
+        </div>
+      </section>
+
+      <section class="settings-grid">
+        <article class="glass-card settings-card">
+          <span class="section-tag">Contexte admin</span>
+          <h3>Traiter les demandes</h3>
+
+          <div class="settings-form-grid">
+            <div class="settings-field">
+              <label for="adminOperator">Identifiant administrateur</label>
+              <input id="adminOperator" class="settings-select" type="text" value="jsoule2010@gmail.com" />
+            </div>
+
+            <div class="settings-field">
+              <label for="adminProductVersion">Version attribuee</label>
+              <select id="adminProductVersion" class="settings-select">
+                <option value="base">Base</option>
+                <option value="automatisation_legere">Automatisation legere</option>
+                <option value="automatisation_poussee">Automatisation poussee</option>
+              </select>
+            </div>
+
+            <div class="settings-field">
+              <label for="adminTemporaryPassword">Mot de passe temporaire</label>
+              <input id="adminTemporaryPassword" class="settings-select" type="text" placeholder="Definir si besoin un mot de passe provisoire" />
+            </div>
+
+            <div class="settings-field">
+              <label for="adminFilterEmail">Filtre email</label>
+              <input id="adminFilterEmail" class="settings-select" type="text" placeholder="email@exemple.fr" />
+            </div>
+
+            <div class="settings-field">
+              <label for="adminFilterStatus">Filtre statut</label>
+              <select id="adminFilterStatus" class="settings-select">
+                <option value="">Tous</option>
+                <option value="pending">pending</option>
+                <option value="more_info_requested">more_info_requested</option>
+                <option value="approved">approved</option>
+                <option value="rejected">rejected</option>
+                <option value="pending_activation">pending_activation</option>
+                <option value="active">active</option>
+                <option value="suspended">suspended</option>
+              </select>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label for="adminNotes">Note administrateur</label>
+              <textarea id="adminNotes" class="mail-textarea" rows="4" placeholder="Note de validation, refus ou demande de complement"></textarea>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <div class="mail-actions">
+                <button class="action-button send-button" id="refreshAdminDataButton" type="button">Actualiser</button>
+              </div>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <p class="settings-help form-feedback is-info" id="adminDbFeedback">La page admin est prete.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="glass-card settings-card">
+          <span class="section-tag">Rappel</span>
+          <h3>Ce que fait cette page</h3>
+          <ul class="feature-list">
+            <li>Voir les demandes de compte enregistrees en BDD.</li>
+            <li>Voir les comptes crees automatiquement.</li>
+            <li>Valider, refuser, demander des complements.</li>
+            <li>Activer ou suspendre un compte.</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="settings-grid">
+        <article class="glass-card settings-card">
+          <span class="section-tag">Administration</span>
+          <h3>Créer un administrateur</h3>
+
+          <div class="settings-form-grid">
+            <div class="settings-field">
+              <label for="secondaryAdminFirstName">Prénom</label>
+              <input id="secondaryAdminFirstName" class="settings-select" type="text" placeholder="Prénom" />
+            </div>
+
+            <div class="settings-field">
+              <label for="secondaryAdminLastName">Nom</label>
+              <input id="secondaryAdminLastName" class="settings-select" type="text" placeholder="Nom" />
+            </div>
+
+            <div class="settings-field">
+              <label for="secondaryAdminEmail">Email</label>
+              <input id="secondaryAdminEmail" class="settings-select" type="email" placeholder="nom@exemple.fr" />
+            </div>
+
+            <div class="settings-field">
+              <label for="secondaryAdminPhone">Téléphone</label>
+              <input id="secondaryAdminPhone" class="settings-select" type="tel" placeholder="Téléphone" />
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label for="secondaryAdminPassword">Mot de passe initial</label>
+              <input id="secondaryAdminPassword" class="settings-select" type="text" placeholder="Au moins 10 caractères" />
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <div class="mail-actions">
+                <button class="action-button send-button" id="createSecondaryAdminButton" type="button">Créer un administrateur</button>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="settings-grid">
+        <article class="glass-card settings-card">
+          <span class="section-tag">Demandes</span>
+          <h3>Demandes d'ouverture</h3>
+          <div class="admin-records" id="adminRequestsList"></div>
+        </article>
+
+        <article class="glass-card settings-card">
+          <span class="section-tag">Comptes</span>
+          <h3>Comptes utilisateurs</h3>
+          <div class="admin-records" id="adminAccountsList"></div>
+        </article>
+      </section>
+
+      <section class="settings-grid">
+        <article class="glass-card settings-card">
+          <span class="section-tag">Boîtes mail</span>
+          <h3>Mode mono / multi par boîte</h3>
+          <p class="section-note">La décision mono-utilisateur ou multi-utilisateur appartient à l'administration de la boîte mail, pas à l'utilisateur final.</p>
+          <div class="admin-records" id="adminMailboxResourcesList"></div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="/frontend/js/sidebar.js"></script>
+  <script src="/frontend/js/admin-private.js"></script>
+</body>
+</html>

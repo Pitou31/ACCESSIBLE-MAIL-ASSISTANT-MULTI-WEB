@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Initialisation administrateur principal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Inter:wght@400;500;600;700;800&family=Lexend:wght@400;500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/frontend/css/styles.css" />
+</head>
+<body data-theme="midnight">
+  <div class="app-shell">
+    <!-- SIDEBAR -->
+
+    <main class="main-content">
+      <header class="hero-header glass-card">
+        <div class="hero-header-text">
+          <p class="eyebrow">Administration</p>
+          <h1>Initialisation du compte administrateur principal</h1>
+          <p class="subtitle">Cette page secrète permet de créer le tout premier compte administrateur de l’application. Elle n’est pas destinée au parcours utilisateur normal.</p>
+        </div>
+      </header>
+
+      <section class="settings-grid">
+        <article class="glass-card settings-card">
+          <span class="section-tag">Bootstrap admin</span>
+          <h3>Créer le compte principal</h3>
+
+          <div class="settings-form-grid">
+            <div class="settings-field">
+              <label for="adminFirstName">Prénom</label>
+              <input id="adminFirstName" class="settings-select" type="text" placeholder="Prénom" />
+            </div>
+
+            <div class="settings-field">
+              <label for="adminLastName">Nom</label>
+              <input id="adminLastName" class="settings-select" type="text" placeholder="Nom" />
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label for="adminEmail">Email administrateur</label>
+              <input id="adminEmail" class="settings-select" type="email" placeholder="nom@exemple.fr" />
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label for="adminOrganizationName">Organisation administrée</label>
+              <input id="adminOrganizationName" class="settings-select" type="text" placeholder="Nom exact de l'organisation administrée" />
+              <p class="settings-help">Cette organisation servira au rattachement des futures demandes non individuelles.</p>
+            </div>
+
+            <div class="settings-field">
+              <label for="adminPhone">Téléphone</label>
+              <input id="adminPhone" class="settings-select" type="tel" placeholder="Téléphone" />
+            </div>
+
+            <div class="settings-field">
+              <label for="adminPassword">Mot de passe principal</label>
+              <input id="adminPassword" class="settings-select" type="password" placeholder="Au moins 10 caractères" />
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label class="settings-toggle">
+                <input id="adminHumanConfirmation" type="checkbox" />
+                <span>Je confirme être un humain</span>
+              </label>
+              <input id="adminTurnstileToken" type="hidden" value="" />
+            </div>
+
+            <div class="settings-field settings-field-full" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
+              <label for="adminWebsite">Ne pas remplir ce champ</label>
+              <input id="adminWebsite" class="settings-select" type="text" tabindex="-1" autocomplete="off" />
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <button class="action-button send-button" id="createAdminButton" type="button">Créer le compte administrateur principal</button>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <p class="settings-help form-feedback is-info" id="adminBootstrapFeedback">Aucun compte administrateur principal créé depuis cette page pour le moment.</p>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <div class="account-summary-card" id="adminBootstrapSummary">
+                <p class="settings-help">Cette page ne doit être utilisée qu’une seule fois pour l’initialisation du tout premier administrateur.</p>
+                <div class="mail-actions">
+                  <a class="action-button" href="/frontend/admin-private.html">Ouvrir l'espace administrateur privé</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="/frontend/js/sidebar.js"></script>
+  <script src="/frontend/js/shared/identity-formatting.js"></script>
+  <script src="/frontend/js/shared/human-verification.js"></script>
+  <script src="/frontend/js/admin-bootstrap.js"></script>
+</body>
+</html>

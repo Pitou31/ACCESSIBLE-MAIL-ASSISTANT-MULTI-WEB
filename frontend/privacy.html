@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Confidentialité / RGPD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Inter:wght@400;500;600;700;800&family=Lexend:wght@400;500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/frontend/css/styles.css" />
+</head>
+<body data-theme="midnight">
+  <div class="app-shell">
+    <!-- SIDEBAR -->
+
+    <main class="main-content">
+      <header class="hero-header glass-card">
+        <div class="hero-header-text">
+          <p class="eyebrow">Confidentialité</p>
+          <h1>RGPD et protection des données</h1>
+          <p class="subtitle">Cette page explique clairement quelles données Mail Care conserve, ce qui reste dans votre boîte mail, et comment exercer vos droits d'accès, de rectification ou de suppression.</p>
+        </div>
+      </header>
+
+      <section class="settings-toolbar glass-card">
+        <div>
+          <span class="section-tag">Principe retenu</span>
+          <h3>Mail Care assiste, mais n'archive pas les mails</h3>
+          <p class="section-note">Les mails restent gérés dans chaque boîte mail individuelle. Mail Care conserve seulement ce qui est nécessaire au compte, aux réglages, aux connexions, aux préférences et aux actions demandées.</p>
+        </div>
+      </section>
+
+      <section class="settings-grid">
+        <article class="glass-card settings-card">
+          <span class="section-tag">Résumé</span>
+          <h3>Ce qu'il faut retenir</h3>
+          <ul class="settings-help">
+            <li>Vos mails ne sont pas recopiés durablement dans l'application par défaut.</li>
+            <li>Les données techniques servent à faire fonctionner votre compte et vos préférences.</li>
+            <li>Les secrets, jetons OAuth et clés API ne sont pas affichés en clair dans l'export RGPD.</li>
+            <li>La dictée ne doit pas conserver durablement l'audio brut par défaut.</li>
+            <li>Vous pouvez télécharger un export des données connues de votre compte.</li>
+          </ul>
+        </article>
+
+        <article class="glass-card settings-card">
+          <span class="section-tag">Données conservées</span>
+          <h3>Ce que la base peut héberger</h3>
+          <ul class="settings-help">
+            <li>Comptes utilisateurs et administrateurs.</li>
+            <li>Sessions, préférences, réglages audio et choix de fournisseurs IA.</li>
+            <li>Connexions de boîtes mail et jetons OAuth protégés.</li>
+            <li>Règles de traitement, traces d'action et identifiants techniques de messages.</li>
+            <li>Fournisseurs API configurés, clés protégées et événements d'usage.</li>
+          </ul>
+        </article>
+
+        <article class="glass-card settings-card">
+          <span class="section-tag">Minimisation</span>
+          <h3>Ce qui ne doit pas être conservé par défaut</h3>
+          <ul class="settings-help">
+            <li>Copie complète des boîtes mail.</li>
+            <li>Pièces jointes complètes sans décision explicite.</li>
+            <li>Audio brut de dictée.</li>
+            <li>Transcriptions longues sans finalité.</li>
+            <li>Prompts LLM complets dans les logs.</li>
+            <li>Secrets en clair.</li>
+          </ul>
+        </article>
+
+        <article class="glass-card settings-card">
+          <span class="section-tag">Vos droits</span>
+          <h3>Accès, rectification, suppression</h3>
+          <ul class="settings-help">
+            <li>Accès : obtenir une copie des données connues du compte.</li>
+            <li>Rectification : demander la correction d'une information inexacte.</li>
+            <li>Suppression : demander la suppression du compte et des données associées quand c'est possible.</li>
+            <li>Limitation : demander à suspendre certains traitements si une vérification est nécessaire.</li>
+          </ul>
+        </article>
+
+        <article class="glass-card settings-card">
+          <span class="section-tag">Vos données</span>
+          <h3>Exporter les données du compte connecté</h3>
+          <p class="settings-help">L'export ne contient pas les secrets en clair : les jetons OAuth et clés API sont seulement signalés comme présents ou absents.</p>
+          <div class="mail-actions">
+            <button class="action-button send-button" id="privacyExportButton" type="button">Exporter mes données RGPD</button>
+          </div>
+          <p class="settings-help form-feedback is-info" id="privacyExportFeedback">Connectez-vous pour exporter les données de votre compte.</p>
+        </article>
+
+        <article class="glass-card settings-card">
+          <span class="section-tag">Demande RGPD</span>
+          <h3>Préparer une demande à l'administrateur</h3>
+          <p class="settings-help">La suppression automatique du compte n'est pas activée dans cette première version, afin d'éviter une action destructrice accidentelle. Pour l'instant, la suppression ou la rectification complète passe par l'administrateur.</p>
+          <div class="mail-actions">
+            <button class="action-button secondary-button" id="privacyCopyRequestButton" type="button">Copier un modèle de demande</button>
+          </div>
+          <p class="settings-help form-feedback is-info" id="privacyRequestFeedback">Le modèle peut être envoyé à l'administrateur après export de vos données.</p>
+        </article>
+
+        <article class="glass-card settings-card">
+          <span class="section-tag">Usage</span>
+          <h3>Local personnel ou multi-utilisateur</h3>
+          <p class="settings-help">En usage strictement personnel, la charge RGPD peut être réduite. En usage associatif, professionnel, multi-utilisateur, DGX partagé ou serveur, une démarche RGPD est à prévoir : information utilisateur, registre minimal, conservation limitée et droits d'accès.</p>
+        </article>
+
+        <article class="glass-card settings-card">
+          <span class="section-tag">IA et dictée</span>
+          <h3>Local ou API externe</h3>
+          <p class="settings-help">Un modèle local limite les transferts externes, mais ne supprime pas le besoin de protéger la machine. Une API externe peut recevoir des extraits de mail, commandes vocales ou audio selon le service utilisé.</p>
+          <p class="settings-help">La règle de base est de transmettre uniquement le contexte nécessaire : pas toute la boîte mail, pas d'audio conservé durablement, pas de contenu complet dans les logs.</p>
+        </article>
+
+        <article class="glass-card settings-card">
+          <span class="section-tag">Conservation</span>
+          <h3>Règles pratiques retenues</h3>
+          <ul class="settings-help">
+            <li>Compte et préférences : conservés tant que le compte existe.</li>
+            <li>Connexions mail : conservées tant que la boîte est connectée.</li>
+            <li>Traces d'usage : à limiter à ce qui est utile au fonctionnement, au support et à la facturation.</li>
+            <li>Contenus de mails : pas d'archivage durable par défaut dans Mail Care.</li>
+          </ul>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="/frontend/js/sidebar.js"></script>
+  <script src="/frontend/js/privacy.js"></script>
+</body>
+</html>

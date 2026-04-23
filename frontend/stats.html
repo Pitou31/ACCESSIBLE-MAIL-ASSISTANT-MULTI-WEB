@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maquette Statistiques - Accessible Mail Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/frontend/css/styles.css" />
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #172036;
+      --panel: rgba(255, 255, 255, 0.08);
+      --panel-strong: rgba(255, 255, 255, 0.12);
+      --text: #eef2ff;
+      --muted: #cbd5e1;
+      --border: rgba(255, 255, 255, 0.12);
+      --accent: #7c3aed;
+      --accent-2: #2563eb;
+      --success: #16a34a;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --shadow: 0 18px 45px rgba(2, 6, 23, 0.28);
+      --radius-xl: 24px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+      --max: 1380px;
+      --sidebar-w: 92px;
+      --sidebar-open: 250px;
+      --grid-gap: 18px;
+      --font-scale: 1;
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #172554 45%, #312e81 100%);
+    }
+
+    body[data-theme="blue-violet"] {
+      --bg: #101424;
+      --bg-soft: #181f35;
+      --panel: rgba(255, 255, 255, 0.08);
+      --panel-strong: rgba(255, 255, 255, 0.13);
+      --text: #f3f4ff;
+      --muted: #c7d2fe;
+      --accent: #7c3aed;
+      --accent-2: #3b82f6;
+      --bg-gradient: linear-gradient(140deg, #0f172a 0%, #1d1b4b 42%, #4338ca 100%);
+    }
+
+    body[data-theme="emerald-blue"] {
+      --bg: #08161a;
+      --bg-soft: #102028;
+      --panel: rgba(255, 255, 255, 0.07);
+      --panel-strong: rgba(255, 255, 255, 0.12);
+      --text: #f8fafc;
+      --muted: #d1fae5;
+      --accent: #10b981;
+      --accent-2: #2563eb;
+      --bg-gradient: linear-gradient(145deg, #08161a 0%, #0f766e 42%, #1d4ed8 100%);
+    }
+
+    body[data-theme="sunset"] {
+      --bg: #1a0f10;
+      --bg-soft: #241618;
+      --panel: rgba(255, 255, 255, 0.06);
+      --panel-strong: rgba(255, 255, 255, 0.11);
+      --text: #fff7f5;
+      --muted: #f3d6cf;
+      --accent: #b45309;
+      --accent-2: #7f1d1d;
+      --bg-gradient: linear-gradient(145deg, #1a0f10 0%, #7c2d12 38%, #7f1d1d 100%);
+    }
+
+    body[data-theme="midnight"] {
+      --bg: #151515;
+      --bg-soft: #1e1e1e;
+      --panel: rgba(255, 255, 255, 0.05);
+      --panel-strong: rgba(255, 255, 255, 0.09);
+      --text: #f8fafc;
+      --muted: #d1d5db;
+      --accent: #9333ea;
+      --accent-2: #2563eb;
+      --bg-gradient: linear-gradient(145deg, #151515 0%, #1f2937 52%, #312e81 100%);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text);
+      font-size: calc(16px * var(--font-scale));
+    }
+
+    body {
+      min-height: 100vh;
+    }
+
+    .stats-sidebar {
+      position: fixed;
+      inset: 0 auto 0 0;
+      width: var(--sidebar-w);
+      background: rgba(4, 8, 20, 0.52);
+      border-right: 1px solid var(--border);
+      backdrop-filter: blur(16px);
+      transition: width 0.2s ease;
+      overflow: hidden;
+      z-index: 20;
+    }
+
+    .stats-sidebar:hover { width: var(--sidebar-open); }
+
+    .stats-sidebar-inner {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 16px 12px;
+      gap: 12px;
+    }
+
+    .stats-brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px;
+      border-radius: var(--radius-lg);
+      background: var(--panel);
+      min-height: 76px;
+    }
+
+    .stats-brand-badge {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      box-shadow: var(--shadow);
+      flex: 0 0 auto;
+    }
+
+    .stats-brand-text, .stats-nav-label, .stats-theme-label {
+      opacity: 0;
+      transform: translateX(8px);
+      transition: all 0.18s ease;
+      white-space: nowrap;
+    }
+
+    .stats-sidebar:hover .stats-brand-text,
+    .stats-sidebar:hover .stats-nav-label,
+    .stats-sidebar:hover .stats-theme-label {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .stats-brand-title {
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .stats-brand-subtitle {
+      color: var(--muted);
+      font-size: 0.86rem;
+      margin-top: 4px;
+    }
+
+    .stats-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .stats-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px;
+      border-radius: var(--radius-md);
+      color: var(--text);
+      text-decoration: none;
+      background: transparent;
+      border: 1px solid transparent;
+    }
+
+    .stats-nav-item.active,
+    .stats-nav-item:hover {
+      background: var(--panel-strong);
+      border-color: var(--border);
+    }
+
+    .stats-nav-icon {
+      width: 26px;
+      height: 26px;
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      flex: 0 0 auto;
+    }
+
+    .stats-sidebar-footer {
+      margin-top: auto;
+      display: grid;
+      gap: 10px;
+    }
+
+    .stats-theme-panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .stats-theme-select {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      padding: 10px 12px;
+      font-size: 0.96rem;
+    }
+
+    .stats-main {
+      margin-left: var(--sidebar-w);
+      width: calc(100% - var(--sidebar-w));
+      transition: margin-left 0.2s ease, width 0.2s ease;
+    }
+
+    .shell {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 28px 24px 36px;
+    }
+
+    .hero {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 28px;
+      box-shadow: var(--shadow);
+      display: grid;
+      gap: 20px;
+    }
+
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      color: var(--muted);
+      font-size: 0.9rem;
+      border: 1px solid var(--border);
+    }
+
+    h1 {
+      margin: 10px 0 8px;
+      font-size: 2.15rem;
+      line-height: 1.1;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 840px;
+      line-height: 1.6;
+      font-size: 1.02rem;
+    }
+
+    .access-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .badge {
+      padding: 9px 12px;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+    }
+
+    .badge.admin { background: rgba(124, 58, 237, 0.18); }
+    .badge.user { background: rgba(37, 99, 235, 0.18); }
+    .badge.info { background: rgba(14, 165, 233, 0.16); }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 24px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field label {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .field input,
+    .field select,
+    .field button {
+      width: 100%;
+      min-height: 46px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      padding: 0 14px;
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      font-size: 0.98rem;
+    }
+
+    .field button {
+      cursor: pointer;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      border: none;
+      box-shadow: var(--shadow);
+    }
+
+    .content {
+      display: grid;
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .tab {
+      padding: 12px 16px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .tab.active { background: var(--panel-strong); }
+
+    .section {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 22px;
+      box-shadow: var(--shadow);
+      display: grid;
+      gap: 18px;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .section-title {
+      font-size: 1.3rem;
+      font-weight: 800;
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      font-size: 0.96rem;
+      margin-top: 6px;
+    }
+
+    .legend {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .legend span::before {
+      content: "";
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      margin-right: 8px;
+      vertical-align: middle;
+      background: var(--accent);
+    }
+
+    .legend span:nth-child(2)::before { background: var(--accent-2); }
+    .legend span:nth-child(3)::before { background: var(--success); }
+    .legend span:nth-child(4)::before { background: var(--warning); }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: var(--grid-gap);
+    }
+
+    .kpi {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      display: grid;
+      gap: 10px;
+      min-height: 132px;
+    }
+
+    .kpi-label {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .kpi-value {
+      font-size: 1.9rem;
+      font-weight: 800;
+      line-height: 1.1;
+    }
+
+    .kpi-detail {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: var(--grid-gap);
+    }
+
+    .chart-card,
+    .table-card,
+    .access-card,
+    .category-card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+    }
+
+    .chart-title,
+    .table-title {
+      font-weight: 700;
+      margin-bottom: 16px;
+      font-size: 1.06rem;
+    }
+
+    .chart {
+      height: 260px;
+      position: relative;
+      overflow: hidden;
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+      border: 1px solid rgba(255,255,255,0.05);
+      padding: 18px 18px 42px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-end;
+    }
+
+    .chart::before {
+      content: "";
+      position: absolute;
+      inset: 18px 18px 42px 18px;
+      background-image: linear-gradient(to top, rgba(255,255,255,0.08) 1px, transparent 1px);
+      background-size: 100% 20%;
+      pointer-events: none;
+    }
+
+    .bar-group {
+      position: relative;
+      flex: 1;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      align-items: flex-end;
+      z-index: 1;
+    }
+
+    .bar-value {
+      position: absolute;
+      top: -2px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    .bar {
+      width: 28px;
+      border-radius: 12px 12px 6px 6px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.5));
+      box-shadow: inset 0 -12px 20px rgba(0,0,0,0.18);
+      position: relative;
+    }
+
+    .bar.secondary { background: linear-gradient(180deg, rgba(59,130,246,0.95), rgba(59,130,246,0.45)); }
+    .bar.primary { background: linear-gradient(180deg, rgba(124,58,237,0.95), rgba(124,58,237,0.45)); }
+    .bar.success { background: linear-gradient(180deg, rgba(22,163,74,0.95), rgba(22,163,74,0.45)); }
+
+    .bar-label {
+      position: absolute;
+      bottom: -28px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .donut-wrap {
+      display: flex;
+      align-items: center;
+      gap: 26px;
+      flex-wrap: wrap;
+    }
+
+    .donut {
+      width: 170px;
+      height: 170px;
+      border-radius: 50%;
+      background: conic-gradient(var(--accent) 0 42%, var(--accent-2) 42% 71%, var(--success) 71% 88%, rgba(255,255,255,0.14) 88% 100%);
+      display: grid;
+      place-items: center;
+      box-shadow: var(--shadow);
+      flex: 0 0 auto;
+    }
+
+    .donut-center {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background: var(--bg-soft);
+      display: grid;
+      place-items: center;
+      text-align: center;
+      border: 1px solid var(--border);
+      padding: 10px;
+      line-height: 1.2;
+    }
+
+    .donut-center strong {
+      display: block;
+      font-size: 1.2rem;
+      color: var(--text);
+    }
+
+    .donut-center span {
+      display: block;
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+    }
+
+    th, td {
+      padding: 12px 10px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 0.88rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.08);
+    }
+
+    .status.user { background: rgba(37,99,235,0.16); }
+    .status.admin { background: rgba(124,58,237,0.16); }
+    .status.success { background: rgba(22,163,74,0.16); }
+    .status.warning { background: rgba(217,119,6,0.16); }
+
+    .access-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--grid-gap);
+    }
+
+    .access-card ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .categories-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--grid-gap);
+    }
+
+    .category-card {
+      display: grid;
+      gap: 10px;
+      min-height: 170px;
+    }
+
+    .category-title {
+      font-weight: 800;
+      font-size: 1.05rem;
+    }
+
+    .category-stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .category-stats strong {
+      color: var(--text);
+      display: block;
+      font-size: 1.15rem;
+      margin-bottom: 4px;
+    }
+
+    .notice {
+      padding: 16px 18px;
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05);
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .notice strong { color: var(--text); }
+
+    .foot-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .ghost-btn {
+      min-height: 44px;
+      padding: 0 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    @media (max-width: 1220px) {
+      .toolbar,
+      .kpi-grid,
+      .categories-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .split,
+      .access-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 860px) {
+      .stats-sidebar { width: 78px; }
+      .stats-main { margin-left: 78px; width: calc(100% - 78px); }
+      .shell { padding: 18px 16px 28px; }
+      .toolbar,
+      .kpi-grid,
+      .categories-grid,
+      .access-grid { grid-template-columns: 1fr; }
+      h1 { font-size: 1.7rem; }
+    }
+  </style>
+</head>
+<body data-theme="blue-violet">
+  <div class="app-shell">
+    <!-- SIDEBAR -->
+
+    <main class="main-content">
+    <div class="shell">
+      <section class="hero">
+        <div class="hero-top">
+          <div>
+            <div class="eyebrow">📊 Statistiques à la demande</div>
+            <h1>Exploiter les statistiques par faits, temps passé et catégories</h1>
+            <p>
+              Cette maquette propose une page de statistiques homogène avec l’application actuelle, compatible avec le changement de thème,
+              distinguant clairement ce qui est accessible à l’utilisateur et ce qui relève uniquement de l’administrateur.
+            </p>
+          </div>
+          <div class="access-badges">
+            <span class="badge user">Accessible utilisateur</span>
+            <span class="badge admin">Accessible administrateur</span>
+            <span class="badge info">Calcul à la demande</span>
+            <span class="badge info">Sans conservation durable</span>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <div class="field">
+            <label>Période</label>
+            <select>
+              <option>7 derniers jours</option>
+              <option>30 derniers jours</option>
+              <option>Mois en cours</option>
+              <option>Période personnalisée</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Catégorie</label>
+            <select>
+              <option>Toutes catégories</option>
+              <option>Demande d'information</option>
+              <option>Demande de document</option>
+              <option>Relance</option>
+              <option>Facturation</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Vue des statistiques</label>
+            <select id="statsScopeSelect">
+              <option value="account">Vue individuelle</option>
+              <option value="global">Vue consolidée</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Modèle IA</label>
+            <select id="statsModelSelect">
+              <option value="">Tous les modèles</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>&nbsp;</label>
+            <button id="statsRefreshButton">Générer les statistiques</button>
+          </div>
+        </div>
+      </section>
+
+      <div class="content">
+        <div class="tabs">
+          <button class="tab active">Vue d’ensemble</button>
+          <button class="tab">Temps passé</button>
+          <button class="tab">Catégories</button>
+          <button class="tab">Utilisateurs</button>
+          <button class="tab">Modèles IA</button>
+          <button class="tab">Détail</button>
+        </div>
+
+        <section class="section">
+          <div class="section-head">
+            <div>
+              <div class="section-title">Synthèse globale</div>
+              <div class="section-subtitle">Visible par l’utilisateur et l’administrateur. Indicateurs calculés à la demande à partir des faits enregistrés.</div>
+            </div>
+            <div class="status user">Utilisateur + Administrateur</div>
+          </div>
+
+          <div class="kpi-grid">
+            <article class="kpi">
+              <div class="kpi-label">Temps total analysé</div>
+              <div class="kpi-value" id="statsTotalDuration">0 min</div>
+              <div class="kpi-detail">Temps cumulé sur la période sélectionnée</div>
+            </article>
+            <article class="kpi">
+              <div class="kpi-label">Mails traités</div>
+              <div class="kpi-value" id="statsTotalProcessed">0</div>
+              <div class="kpi-detail">Créations et réponses confondues</div>
+            </article>
+            <article class="kpi">
+              <div class="kpi-label">Temps moyen / traitement</div>
+              <div class="kpi-value" id="statsAverageDuration">0 s</div>
+              <div class="kpi-detail">Temps humain + temps IA</div>
+            </article>
+            <article class="kpi">
+              <div class="kpi-label">Validation directe</div>
+              <div class="kpi-value" id="statsSuccessRate">0 %</div>
+              <div class="kpi-detail">Réponses validées sans retouche lourde</div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section split">
+          <div class="chart-card">
+            <div class="chart-title">Évolution des traitements dans le temps</div>
+            <div class="legend">
+              <span>Réponses</span>
+              <span>Créations</span>
+            </div>
+            <div class="chart" id="statsWeeklyChart">
+              <div class="bar-group">
+                <div class="bar primary" style="height: 42%"></div>
+                <div class="bar secondary" style="height: 28%"></div>
+                <div class="bar-label">Lun</div>
+              </div>
+              <div class="bar-group">
+                <div class="bar primary" style="height: 56%"></div>
+                <div class="bar secondary" style="height: 34%"></div>
+                <div class="bar-label">Mar</div>
+              </div>
+              <div class="bar-group">
+                <div class="bar primary" style="height: 68%"></div>
+                <div class="bar secondary" style="height: 39%"></div>
+                <div class="bar-label">Mer</div>
+              </div>
+              <div class="bar-group">
+                <div class="bar primary" style="height: 60%"></div>
+                <div class="bar secondary" style="height: 31%"></div>
+                <div class="bar-label">Jeu</div>
+              </div>
+              <div class="bar-group">
+                <div class="bar primary" style="height: 82%"></div>
+                <div class="bar secondary" style="height: 44%"></div>
+                <div class="bar-label">Ven</div>
+              </div>
+              <div class="bar-group">
+                <div class="bar primary" style="height: 36%"></div>
+                <div class="bar secondary" style="height: 24%"></div>
+                <div class="bar-label">Sam</div>
+              </div>
+              <div class="bar-group">
+                <div class="bar primary" style="height: 30%"></div>
+                <div class="bar secondary" style="height: 18%"></div>
+                <div class="bar-label">Dim</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-title">Répartition du temps passé par activité</div>
+            <div class="donut-wrap" id="statsActivityChart">
+              <div class="donut"><div class="donut-center"><strong>0 %</strong><span>Activité dominante</span></div></div>
+              <div class="legend">
+                <span>Lecture / analyse</span>
+                <span>Réponse</span>
+                <span>Édition</span>
+                <span>Autres</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-head">
+            <div>
+              <div class="section-title">Statistiques par catégorie métier</div>
+              <div class="section-subtitle">Accessible à l’utilisateur et à l’administrateur. Présentation prioritaire par catégorie.</div>
+            </div>
+            <div class="status user">Utilisateur + Administrateur</div>
+          </div>
+
+          <div class="categories-grid">
+            <article class="category-card">
+              <div class="category-title" id="statsCategory1Title">Résumé</div>
+              <div class="category-stats">
+                <div><strong id="statsCategory1Count">0</strong>Traitements</div>
+                <div><strong id="statsCategory1Duration">0 min</strong>Temps total</div>
+                <div><strong id="statsCategory1Average">0 s</strong>Temps moyen</div>
+                <div><strong id="statsCategory1Success">0 %</strong>Succès</div>
+              </div>
+            </article>
+            <article class="category-card">
+              <div class="category-title" id="statsCategory2Title">Reformulation</div>
+              <div class="category-stats">
+                <div><strong id="statsCategory2Count">0</strong>Traitements</div>
+                <div><strong id="statsCategory2Duration">0 min</strong>Temps total</div>
+                <div><strong id="statsCategory2Average">0 s</strong>Temps moyen</div>
+                <div><strong id="statsCategory2Success">0 %</strong>Succès</div>
+              </div>
+            </article>
+            <article class="category-card">
+              <div class="category-title" id="statsCategory3Title">Traduction</div>
+              <div class="category-stats">
+                <div><strong id="statsCategory3Count">0</strong>Traitements</div>
+                <div><strong id="statsCategory3Duration">0 min</strong>Temps total</div>
+                <div><strong id="statsCategory3Average">0 s</strong>Temps moyen</div>
+                <div><strong id="statsCategory3Success">0 %</strong>Succès</div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section access-grid">
+          <article class="access-card">
+            <div class="table-title">Accessible à l’utilisateur</div>
+            <ul>
+              <li>Temps total passé sur la période sélectionnée</li>
+              <li>Nombre de mails traités, créés ou répondus</li>
+              <li>Temps moyen par traitement</li>
+              <li>Répartition par catégorie métier</li>
+              <li>Répartition par type d’activité</li>
+              <li>Vue personnelle si l’utilisateur est identifié</li>
+            </ul>
+          </article>
+          <article class="access-card">
+            <div class="table-title">Accessible uniquement à l’administrateur</div>
+            <ul>
+              <li>Comparaison entre utilisateurs</li>
+              <li>Vue détaillée par modèle IA</li>
+              <li>Taux de timeout, fallback et erreurs techniques</li>
+              <li>Table détaillée exportable</li>
+              <li>Vue d’évaluation ponctuelle des modèles hors production</li>
+              <li>Contrôles d’accès, d’export et de conformité RGPD</li>
+            </ul>
+          </article>
+        </section>
+
+        <section class="section split">
+          <div class="table-card">
+            <div class="table-title">Temps passé par utilisateur</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Utilisateur</th>
+                  <th>Temps total</th>
+                  <th>Traitements</th>
+                  <th>Temps moyen</th>
+                  <th>Accès</th>
+                </tr>
+              </thead>
+              <tbody id="statsUserTableBody"></tbody>
+            </table>
+          </div>
+
+          <div class="table-card">
+            <div class="table-title">Suivi des modèles IA</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Modèle</th>
+                  <th>Temps moyen</th>
+                  <th>Fallback</th>
+                </tr>
+              </thead>
+              <tbody id="statsModelTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-head">
+            <div>
+              <div class="section-title">Détail et export</div>
+              <div class="section-subtitle">Vue détaillée réservée à l’administrateur, générée uniquement à la demande.</div>
+            </div>
+            <div class="status admin">Administrateur</div>
+          </div>
+
+          <div class="table-card">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Utilisateur</th>
+                  <th>Catégorie</th>
+                  <th>Type d’action</th>
+                  <th>Modèle</th>
+                  <th>Durée</th>
+                  <th>Statut</th>
+                </tr>
+              </thead>
+              <tbody id="statsDetailTableBody"></tbody>
+            </table>
+          </div>
+
+          <div class="foot-actions">
+            <button class="ghost-btn">Exporter CSV</button>
+            <button class="ghost-btn">Exporter PDF</button>
+            <button class="ghost-btn" id="statsResetButton">Réinitialiser les statistiques</button>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-head">
+            <div>
+              <div class="section-title">Encadrement RGPD et périmètre</div>
+              <div class="section-subtitle">Rappel visible dans l’UI pour cadrer l’exploitation des statistiques.</div>
+            </div>
+          </div>
+
+          <div class="notice">
+            <strong>Production :</strong> les statistiques affichées ici reposent prioritairement sur des faits, des durées et des agrégats calculés à la demande. Les données nominatives ne doivent pas être conservées durablement.<br><br>
+            <strong>Hors production :</strong> l’évaluation de la qualité des réponses par IA peut exister sur une courte période pour comparer des modèles, mais elle reste réservée à l’administrateur et ne fait pas partie de l’usage standard en production.
+          </div>
+        </section>
+      </div>
+    </div>
+    </main>
+  </div>
+
+  <script src="/frontend/js/sidebar.js"></script>
+  <script src="/frontend/js/stats.js"></script>
+</body>
+</html>

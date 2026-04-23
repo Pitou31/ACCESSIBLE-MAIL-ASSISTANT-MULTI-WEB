@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestion des mails</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/frontend/css/styles.css" />
+  <link rel="stylesheet" href="/frontend/css/dictionary-editor.css" />
+</head>
+<body data-theme="midnight">
+  <div class="app-shell">
+    <!-- SIDEBAR -->
+
+    <main class="main-content">
+      <header class="hero-header glass-card">
+        <div class="hero-header-text">
+          <p class="eyebrow">Traitement</p>
+          <h1>Gestion des mails</h1>
+          <p class="subtitle">Création et réponse assistées par intelligence artificielle</p>
+        </div>
+      </header>
+
+      <section class="mail-toolbar glass-card">
+        <div class="mail-toolbar-left">
+          <div class="mail-mode-group">
+            <span class="toolbar-label centered-toolbar-label">Choix du traitement</span>
+
+            <div class="mode-buttons">
+              <button
+                class="mode-button active"
+                id="createModeBtn"
+                data-mode="creation"
+                type="button"
+              >
+                Créer un mail
+              </button>
+
+              <button
+                class="mode-button"
+                id="replyModeBtn"
+                data-mode="reply"
+                type="button"
+              >
+                Répondre au mail
+              </button>
+            </div>
+          </div>
+
+          <div class="mail-status-group">
+            <button
+              id="classificationBadge"
+              class="mode-button classification-button"
+              type="button"
+            >
+              Classification
+            </button>
+            <div id="classificationValue" class="status-value" aria-live="polite">
+              En attente
+            </div>
+          </div>
+
+          <div class="mail-status-group hidden-panel" id="priorityGroup">
+            <button
+              id="priorityBadge"
+              class="mode-button priority-button"
+              type="button"
+            >
+              Priorité
+            </button>
+            <div id="priorityValue" class="status-value" aria-live="polite">
+              En attente
+            </div>
+          </div>
+        </div>
+
+        <div class="mail-toolbar-right">
+          <label class="toolbar-label" for="llmSelect">LLM utilisé</label>
+          <select id="llmSelect" class="llm-select">
+            <option value="mistral-api">Mistral API</option>
+            <option value="deepseek-chat" selected>DeepSeek Chat (API)</option>
+            <option value="deepseek-reasoner">DeepSeek Reasoner (API)</option>
+          </select>
+          <label class="toolbar-label" for="languageSelect">Langue</label>
+          <select id="languageSelect" class="llm-select">
+            <option value="fr" selected>Français</option>
+            <option value="en">English</option>
+            <option value="es">Español</option>
+            <option value="de">Deutsch</option>
+            <option value="it">Italiano</option>
+            <option value="nl">Nederlands</option>
+            <option value="ar">العربية</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="glass-card settings-card mailbox-connection-card">
+        <span class="section-tag">Boîte mail</span>
+        <h3>Connexion à la boîte mail</h3>
+        <p class="section-note">Procédure production : indique l'adresse de la boîte mail. L'application détecte le fournisseur puis lance sa connexion sécurisée sans demander le mot de passe dans l'interface.</p>
+
+        <div class="settings-form-grid">
+          <div class="settings-field">
+            <label for="mailboxEmail">Adresse de la boîte mail</label>
+            <input id="mailboxEmail" class="settings-select" type="email" placeholder="testagentmail.js@gmail.com" />
+          </div>
+
+          <div class="settings-field">
+            <label>Mode d'accès</label>
+            <div class="account-summary-card">
+              <p class="settings-help"><strong>Flux prévu :</strong> connexion fournisseur sécurisée</p>
+              <p class="settings-help"><strong>Mot de passe saisi ici :</strong> non</p>
+            </div>
+          </div>
+
+          <div class="settings-field" id="mailboxSharingStatusField">
+            <label>Mode d'exploitation</label>
+            <div class="account-summary-card">
+              <p class="settings-help" id="mailboxSharingModeSummary"><strong>Mode :</strong> Mono-utilisateur</p>
+              <p class="settings-help" id="mailboxSharingModeHelp">Cette page reflète seulement l'état actif de la boîte mail.</p>
+            </div>
+          </div>
+
+          <div class="settings-field settings-field-full">
+            <div class="mail-actions">
+              <button class="action-button send-button" id="mailboxConnectBtn" type="button">Connecter la boîte mail</button>
+              <button class="action-button" id="mailboxRefreshBtn" type="button">Rafraîchir l'Inbox</button>
+            </div>
+          </div>
+
+          <div class="settings-field settings-field-full">
+            <div class="mail-actions">
+              <button class="action-button send-button" id="automaticProcessingStartBtn" type="button">Lancer le traitement automatique</button>
+              <button class="action-button delete-button" id="automaticProcessingStopBtn" type="button">Arrêter le traitement automatique</button>
+            </div>
+          </div>
+
+          <div class="settings-field settings-field-full">
+            <p class="settings-help form-feedback is-info" id="automaticProcessingFeedback">Le traitement automatique est prêt. Il devient le mode par défaut dès son lancement.</p>
+          </div>
+
+          <div class="settings-field settings-field-full">
+            <p class="settings-help" id="automaticProcessingContext">Aucune campagne automatique en cours.</p>
+          </div>
+
+          <div class="settings-field settings-field-full">
+            <p class="settings-help form-feedback is-info" id="mailboxFeedback">Aucune boîte mail connectée pour le moment.</p>
+          </div>
+
+          <div class="settings-field settings-field-full">
+            <p class="settings-help mailbox-provider-hint" id="mailboxProviderHint">Le fournisseur sera détecté automatiquement à partir de l'adresse saisie.</p>
+          </div>
+        </div>
+
+        <div class="mailbox-inbox-panel">
+          <p class="account-summary-title">Connexions enregistrées</p>
+          <div id="mailboxConnectionsList" class="mailbox-message-list">
+            <p class="settings-help">Aucune connexion enregistrée pour le moment.</p>
+          </div>
+        </div>
+
+        <div class="mailbox-inbox-panel">
+          <p class="account-summary-title">Inbox connectée</p>
+          <div id="mailboxMessagesList" class="mailbox-message-list">
+            <p class="settings-help">Aucun mail chargé pour le moment.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="mail-toolbar glass-card mail-toolbar-duplicate">
+        <div class="mail-toolbar-left">
+          <div class="mail-mode-group">
+            <span class="toolbar-label centered-toolbar-label">Choix du traitement</span>
+
+            <div class="mode-buttons">
+              <button
+                class="mode-button active"
+                id="createModeBtnBottom"
+                data-mode="creation"
+                type="button"
+              >
+                Créer un mail
+              </button>
+
+              <button
+                class="mode-button"
+                id="replyModeBtnBottom"
+                data-mode="reply"
+                type="button"
+              >
+                Répondre au mail
+              </button>
+            </div>
+          </div>
+
+          <div class="mail-status-group">
+            <button
+              id="classificationBadgeBottom"
+              class="mode-button classification-button"
+              type="button"
+            >
+              Classification
+            </button>
+            <div id="classificationValueBottom" class="status-value" aria-live="polite">
+              En attente
+            </div>
+          </div>
+
+          <div class="mail-status-group hidden-panel" id="priorityGroupBottom">
+            <button
+              id="priorityBadgeBottom"
+              class="mode-button priority-button"
+              type="button"
+            >
+              Priorité
+            </button>
+            <div id="priorityValueBottom" class="status-value" aria-live="polite">
+              En attente
+            </div>
+          </div>
+        </div>
+
+        <div class="mail-toolbar-right">
+          <label class="toolbar-label" for="llmSelectBottom">LLM utilisé</label>
+          <select id="llmSelectBottom" class="llm-select">
+            <option value="mistral-api">Mistral API</option>
+            <option value="deepseek-chat" selected>DeepSeek Chat (API)</option>
+            <option value="deepseek-reasoner">DeepSeek Reasoner (API)</option>
+          </select>
+          <label class="toolbar-label" for="languageSelectBottom">Langue</label>
+          <select id="languageSelectBottom" class="llm-select">
+            <option value="fr" selected>Français</option>
+            <option value="en">English</option>
+            <option value="es">Español</option>
+            <option value="de">Deutsch</option>
+            <option value="it">Italiano</option>
+            <option value="nl">Nederlands</option>
+            <option value="ar">العربية</option>
+          </select>
+        </div>
+      </section>
+
+      <section id="creationWorkspace" class="glass-card mail-workspace-board">
+        <div class="mail-columns">
+          <div class="mail-column left-column">
+            <div class="mail-column-title">
+              <h2>Création de mail</h2>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-field">
+                <label for="mailTo">Mail du destinataire</label>
+                <input
+                  id="mailTo"
+                  type="email"
+                  class="mail-input"
+                  placeholder="destinataire@example.com"
+                  autocomplete="off"
+                />
+              </div>
+
+              <div class="form-field">
+                <label for="mailDate">Date du jour</label>
+                <input
+                  id="mailDate"
+                  type="text"
+                  class="mail-input"
+                  readonly
+                />
+              </div>
+
+              <div class="form-field">
+                <label for="mailCc">Copies (CC)</label>
+                <input
+                  id="mailCc"
+                  type="text"
+                  class="mail-input"
+                  placeholder="cc1@example.com, cc2@example.com"
+                  autocomplete="off"
+                />
+              </div>
+
+              <div class="form-field">
+                <label for="mailBcc">Copies cachées (BCC)</label>
+                <input
+                  id="mailBcc"
+                  type="text"
+                  class="mail-input"
+                  placeholder="bcc@example.com"
+                  autocomplete="off"
+                />
+              </div>
+
+              <div class="form-field form-field-full">
+                <label for="mailSubject">Objet</label>
+                <input
+                  id="mailSubject"
+                  type="text"
+                  class="mail-input"
+                  placeholder="Objet du mail"
+                  autocomplete="off"
+                />
+              </div>
+            </div>
+
+            <div class="mail-editor-block">
+              <label for="creationPrompt" class="editor-label">Prompt guidé</label>
+              <div class="mail-actions">
+                <button class="action-button" id="creationPromptDictionaryEditorBtn" type="button">Modifier avec dictionnaire</button>
+                <button class="action-button hidden-panel" type="button" data-text-setting="translationActionsEnabled" data-text-action="translate" data-text-target="prompt de création">Traduire</button>
+                <button class="action-button hidden-panel" type="button" data-text-setting="summaryActionsEnabled" data-text-action="summarize" data-text-target="prompt de création">Résumer</button>
+                <button class="action-button hidden-panel" type="button" data-text-setting="rephraseActionsEnabled" data-text-action="rephrase" data-text-target="prompt de création">Reformuler</button>
+              </div>
+              <div class="audio-controls" data-audio-for="creationPrompt">
+                <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
+                <button class="mode-button" data-audio-play type="button">Lire</button>
+                <button class="mode-button" data-audio-pause type="button">Pause</button>
+                <button class="mode-button" data-audio-resume type="button">Reprendre</button>
+                <button class="mode-button" data-audio-stop type="button">Stop audio</button>
+              </div>
+              <div class="audio-input-controls" data-audio-input-for="creationPrompt">
+                <button class="audio-input-toggle-button" data-audio-input-start type="button">Dicter</button>
+                <button class="mode-button" data-audio-input-pause type="button">Pause</button>
+                <button class="mode-button" data-audio-input-resume type="button">Reprendre</button>
+                <button class="mode-button" data-audio-input-stop type="button">Stop dictée</button>
+                <select class="settings-select audio-input-mode" data-audio-input-mode>
+                  <option value="cursor">Insérer au curseur</option>
+                  <option value="selection">Remplacer sélection</option>
+                  <option value="append">Ajouter à la fin</option>
+                  <option value="ai-command">Commande IA locale</option>
+                </select>
+                <span class="settings-help audio-input-status" data-audio-input-status>Dictée inactive.</span>
+              </div>
+              <p class="settings-help" id="creationPromptDetectedLanguage" aria-live="polite">Langue détectée : en attente</p>
+              <textarea
+                id="creationPrompt"
+                class="mail-textarea input-textarea"
+                placeholder="Tu es un spécialiste de la rédaction de mails. Rédige un mail clair, professionnel et accessible. Objectif : ..."
+              ></textarea>
+              <div id="creationPromptTranslationPanel" class="suggestion-assistant hidden-panel" aria-hidden="true">
+                <div class="suggestion-assistant-header">
+                  <span class="editor-label">Traduction</span>
+                  <p class="settings-help" id="creationPromptTranslationFeedback">La traduction apparaîtra ici.</p>
+                </div>
+                <textarea
+                  id="creationPromptTranslationResult"
+                  class="mail-textarea output-textarea protected-textarea"
+                  readonly
+                  placeholder="La traduction du prompt de création apparaîtra ici."
+                ></textarea>
+                <div class="audio-controls" data-audio-for="creationPromptTranslationResult">
+                  <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
+                  <button class="mode-button" data-audio-play type="button">Lire</button>
+                  <button class="mode-button" data-audio-pause type="button">Pause</button>
+                  <button class="mode-button" data-audio-resume type="button">Reprendre</button>
+                  <button class="mode-button" data-audio-stop type="button">Stop audio</button>
+                </div>
+              </div>
+              <div id="creationPromptSummaryPanel" class="suggestion-assistant hidden-panel" aria-hidden="true">
+                <div class="suggestion-assistant-header">
+                  <span class="editor-label">Résumé</span>
+                  <p class="settings-help" id="creationPromptSummaryFeedback">Le résumé apparaîtra ici.</p>
+                </div>
+                <textarea
+                  id="creationPromptSummaryResult"
+                  class="mail-textarea output-textarea protected-textarea"
+                  readonly
+                  placeholder="Le résumé du prompt de création apparaîtra ici."
+                ></textarea>
+                <div class="audio-controls" data-audio-for="creationPromptSummaryResult">
+                  <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
+                  <button class="mode-button" data-audio-play type="button">Lire</button>
+                  <button class="mode-button" data-audio-pause type="button">Pause</button>
+                  <button class="mode-button" data-audio-resume type="button">Reprendre</button>
+                  <button class="mode-button" data-audio-stop type="button">Stop audio</button>
+                </div>
+              </div>
+              <div id="creationPromptRephrasePanel" class="suggestion-assistant hidden-panel" aria-hidden="true">
+                <div class="suggestion-assistant-header">
+                  <span class="editor-label">Reformulation</span>
+                  <p class="settings-help" id="creationPromptRephraseFeedback">La reformulation apparaîtra ici.</p>
+                </div>
+                <textarea
+                  id="creationPromptRephraseResult"
+                  class="mail-textarea output-textarea protected-textarea"
+                  readonly
+                  placeholder="La reformulation du prompt de création apparaîtra ici."
+                ></textarea>
+                <div class="audio-controls" data-audio-for="creationPromptRephraseResult">
+                  <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
+                  <button class="mode-button" data-audio-play type="button">Lire</button>
+                  <button class="mode-button" data-audio-pause type="button">Pause</button>
+                  <button class="mode-button" data-audio-resume type="button">Reprendre</button>
+                  <button class="mode-button" data-audio-stop type="button">Stop audio</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="attachments-block">
+              <label for="creationAttachments" class="editor-label">Pièces jointes (facultatif)</label>
+              <div class="mail-actions">
+                <button class="action-button hidden-panel" type="button" data-text-setting="translationActionsEnabled" data-text-action="translate" data-text-target="pièces jointes de création">Traduire</button>
+                <button class="action-button hidden-panel" type="button" data-text-setting="summaryActionsEnabled" data-text-action="summarize" data-text-target="pièces jointes de création">Résumer</button>
+              </div>
+              <input
+                id="creationAttachments"
+                type="file"
+                class="file-input"
+                multiple
+              />
+              <div id="creationAttachmentsPreview" class="attachment-preview-list">
+                <p class="settings-help">Aucune pièce jointe chargée.</p>
+              </div>
+              <div id="creationAttachmentsSelectionPanel" class="suggestion-assistant hidden-panel" aria-hidden="true">
+                <label class="settings-help" for="creationAttachmentsTranslationSelect">Fichier à traduire</label>
+                <select id="creationAttachmentsTranslationSelect" class="settings-select">
+                  <option value="">Sélectionner une pièce jointe</option>
+                </select>
+              </div>
+              <div id="creationAttachmentsTranslationPanel" class="suggestion-assistant hidden-panel" aria-hidden="true">
+                <div class="suggestion-assistant-header">
+                  <span class="editor-label">Traduction</span>
+                  <p class="settings-help" id="creationAttachmentsTranslationFeedback">La traduction des pièces jointes apparaîtra ici.</p>
+                </div>
+                <textarea
+                  id="creationAttachmentsTranslationResult"
+                  class="mail-textarea output-textarea protected-textarea"
+                  readonly
+                  placeholder="La traduction des pièces jointes de création apparaîtra ici."
+                ></textarea>
+                <div class="audio-controls" data-audio-for="creationAttachmentsTranslationResult">
+                  <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
+                  <button class="mode-button" data-audio-play type="button">Lire</button>
+                  <button class="mode-button" data-audio-pause type="button">Pause</button>
+                  <button class="mode-button" data-audio-resume type="button">Reprendre</button>
+                  <button class="mode-button" data-audio-stop type="button">Stop audio</button>
+                </div>
+              </div>
+              <div id="creationAttachmentsSummaryPanel" class="suggestion-assistant hidden-panel" aria-hidden="true">
+                <div class="suggestion-assistant-header">
+                  <span class="editor-label">Résumé</span>
+                  <p class="settings-help" id="creationAttachmentsSummaryFeedback">Le résumé des pièces jointes apparaîtra ici.</p>
+                </div>
+                <textarea
+                  id="creationAttachmentsSummaryResult"
+                  class="mail-textarea output-textarea protected-textarea"
+                  readonly
+                  placeholder="Le résumé des pièces jointes de création apparaîtra ici."
+                ></textarea>
+                <div class="audio-controls" data-audio-for="creationAttachmentsSummaryResult">
+                  <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
+                  <button class="mode-button" data-audio-play type="button">Lire</button>
+                  <button class="mode-button" data-audio-pause type="button">Pause</button>
+                  <button class="mode-button" data-audio-resume type="button">Reprendre</button>
+                  <button class="mode-button" data-audio-stop type="button">Stop audio</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mail-column right-column">
+            <div class="mail-column-title">
+              <h2>Contenu du mail</h2>
+            </div>
+
+            <div class="mail-editor-block">
+              <label for="creationOutputMailContent" class="editor-label">Contenu éditable</label>
+              <div class="mail-actions">
+                <button class="action-button send-button" id="creationGenerateBtn" type="button">Generer le brouillon</button>
+                <button class="action-button" id="creationRegenerateBtn" type="button">Regenerer avec le LLM choisi</button>
+                <button class="action-button" id="creationDictionaryEditorBtn" type="button">Modifier avec dictionnaire</button>
+                <button class="action-button hidden-panel" type="button" data-text-setting="translationActionsEnabled" data-text-action="translate" data-text-target="contenu du mail de création">Traduire</button>
+                <button class="action-button hidden-panel" type="button" data-text-setting="summaryActionsEnabled" data-text-action="summarize" data-text-target="contenu du mail de création">Résumer</button>
+                <button class="action-button hidden-panel" type="button" data-text-setting="rephraseActionsEnabled" data-text-action="rephrase" data-text-target="contenu du mail de création">Reformuler</button>
+              </div>
+              <p class="settings-help form-feedback is-info" id="creationGenerationFeedback">Le brouillon sera genere avec le LLM selectionne dans la barre du haut.</p>
+              <div id="creationAiTrace" class="attachment-preview-list">
+                <p class="settings-help">Trace IA non disponible pour le moment.</p>
+              </div>
+              <div class="audio-controls" data-audio-for="creationOutputMailContent">
+                <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
+                <button class="mode-button" data-audio-play type="button">Lire</button>
+                <button class="mode-button" data-audio-pause type="button">Pause</button>
+                <button class="mode-button" data-audio-resume type="button">Reprendre</button>
+                <button class="mode-button" data-audio-stop type="button">Stop audio</button>
+              </div>
+              <div class="audio-input-controls" data-audio-input-for="creationOutputMailContent">
+                <button class="audio-input-toggle-button" data-audio-input-start type="button">Dicter</button>
+                <button class="mode-button" data-audio-input-pause type="button">Pause</button>
+                <button class="mode-button" data-audio-input-resume type="button">Reprendre</button>
+                <button class="mode-button" data-audio-input-stop type="button">Stop dictée</button>
+                <select class="settings-select audio-input-mode" data-audio-input-mode>
+                  <option value="cursor">Insérer au curseur</option>
+                  <option value="selection">Remplacer la sélection</option>
+                  <option value="append">Ajouter à la fin</option>
+                  <option value="ai-command">Commande IA locale</option>
+                </select>
+                <span class="settings-help audio-input-status" data-audio-input-status>Dictée inactive.</span>
+              </div>
+              <textarea
+                id="creationOutputMailContent"
+                class="mail-textarea output-textarea"
+                placeholder="Le contenu du mail généré apparaîtra ici, avec possibilité de modification."
+              ></textarea>
+              <div id="creationOutputTranslationPanel" class="suggestion-assistant hidden-panel" aria-hidden="true">
+                <div class="suggestion-assistant-header">
+                  <span class="editor-label">Traduction</span>
+                  <p class="settings-help" id="creationOutputTranslationFeedback">La traduction apparaîtra ici.</p>
+                </div>
+                <textarea
+                  id="creationOutputTranslationResult"
+                  class="mail-textarea output-textarea protected-textarea"
+                  readonly
+                  placeholder="La traduction du contenu du mail apparaîtra ici."
+                ></textarea>
+                <div class="audio-controls" data-audio-for="creationOutputTranslationResult">
+                  <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
+                  <button class="mode-button" data-audio-play type="button">Lire</button>
+                  <button class="mode-button" data-audio-pause type="button">Pause</button>
+                  <button class="mode-button" data-audio-resume type="button">Reprendre</button>
+                  <button class="mode-button" data-audio-stop type="button">Stop audio</button>
+                </div>
+              </div>
+              <div id="creationOutputSummaryPanel" class="suggestion-assistant hidden-panel" aria-hidden="true">
+                <div class="suggestion-assistant-header">
+                  <span class="editor-label">Résumé</span>
+                  <p class="settings-help" id="creationOutputSummaryFeedback">Le résumé apparaîtra ici.</p>
+                </div>
+                <textarea
+                  id="creationOutputSummaryResult"
+                  class="mail-textarea output-textarea protected-textarea"
+                  readonly
+                  placeholder="Le résumé du contenu du mail apparaîtra ici."
+                ></textarea>
+                <div class="audio-controls" data-audio-for="creationOutputSummaryResult">
+                  <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
+                  <button class="mode-button" data-audio-play type="button">Lire</button>
+                  <button class="mode-button" data-audio-pause type="button">Pause</button>
+                  <button class="mode-button" data-audio-resume type="button">Reprendre</button>
+                  <button class="mode-button" data-audio-stop type="button">Stop audio</button>
+                </div>
+              </div>
+              <div id="creationOutputRephrasePanel" class="suggestion-assistant hidden-panel" aria-hidden="true">
+                <div class="suggestion-assistant-header">
+                  <span class="editor-label">Reformulation</span>
+                  <p class="settings-help" id="creationOutputRephraseFeedback">La reformulation apparaîtra ici.</p>
+                </div>
+                <textarea
+                  id="creationOutputRephraseResult"
+                  class="mail-textarea output-textarea protected-textarea"
+                  readonly
+                  placeholder="La reformulation du contenu du mail de création apparaîtra ici."
+                ></textarea>
+                <div class="audio-controls" data-audio-for="creationOutputRephraseResult">
+                  <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
+                  <button class="mode-button" data-audio-play type="button">Lire</button>
+                  <button class="mode-button" data-audio-pause type="button">Pause</button>
+                  <button class="mode-button" data-audio-resume type="button">Reprendre</button>
+                  <button class="mode-button" data-audio-stop type="button">Stop audio</button>
+                </div>
+              </div>
+              <div class="suggestion-assistant hidden-panel" data-suggestion-assistant="creationOutputMailContent">
+                <div class="suggestion-assistant-header">
+                  <span class="editor-label">Dictionnaire dynamique</span>
+                  <p class="settings-help">Le panneau se réduit au fur et à mesure de la frappe. Clique sur un mot pour l'insérer.</p>
+                </div>
+                <div class="suggestion-chip-list" id="creationOutputSuggestions" aria-live="polite">
+                  <p class="settings-help">Les suggestions apparaîtront ici pendant la rédaction.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="attachments-block">
+              <label for="creationOutputAttachments" class="editor-label">Pièces jointes (facultatif)</label>
+              <div class="mail-actions">
+                <button class="action-button hidden-panel" type="button" data-text-setting="translationActionsEnabled" data-text-action="translate" data-text-target="pièces jointes du mail de création">Traduire</button>
+                <button class="action-button hidden-panel" type="button" data-text-setting="summaryActionsEnabled" data-text-action="summarize" data-text-target="pièces jointes du mail de création">Résumer</button>
+              </div>
+              <input
+                id="creationOutputAttachments"
+                type="file"
+                class="file-input"
+                multiple
+              />
+              <div id="creationOutputAttachmentsPreview" class="attachment-preview-list">
+                <p class="settings-help">Aucune pièce jointe chargée.</p>
+              </div>
+              <div id="creationOutputAttachmentsSelectionPanel" class="suggestion-assistant hidden-panel" aria-hidden="true">
+                <label class="settings-help" for="creationOutputAttachmentsTranslationSelect">Fichier à traduire</label>
+                <select id="creationOutputAttachmentsTranslationSelect" class="settings-select">
+                  <option value="">Sélectionner une pièce jointe</option>
+                </select>
+              </div>
+              <div id="creationOutputAttachmentsTranslationPanel" class="suggestion-assistant hidden-panel" aria-hidden="true">
+                <div class="suggestion-assistant-header">
+                  <span class="editor-label">Traduction</span>
+                  <p class="settings-help" id="creationOutputAttachmentsTranslationFeedback">La traduction des pièces jointes apparaîtra ici.</p>
+                </div>
+                <textarea
+                  id="creationOutputAttachmentsTranslationResult"
+                  class="mail-textarea output-textarea protected-textarea"
+                  readonly
+                  placeholder="La traduction des pièces jointes du mail de création apparaîtra ici."
+                ></textarea>
+                <div class="audio-controls" data-audio-for="creationOutputAttachmentsTranslationResult">
+                  <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
+                  <button class="mode-button" data-audio-play type="button">Lire</button>
+                  <button class="mode-button" data-audio-pause type="button">Pause</button>
+                  <button class="mode-button" data-audio-resume type="button">Reprendre</button>
+                  <button class="mode-button" data-audio-stop type="button">Stop audio</button>
+                </div>
+              </div>
+              <div id="creationOutputAttachmentsSummaryPanel" class="suggestion-assistant hidden-panel" aria-hidden="true">
+                <div class="suggestion-assistant-header">
+                  <span class="editor-label">Résumé</span>
+                  <p class="settings-help" id="creationOutputAttachmentsSummaryFeedback">Le résumé des pièces jointes apparaîtra ici.</p>
+                </div>
+                <textarea
+                  id="creationOutputAttachmentsSummaryResult"
+                  class="mail-textarea output-textarea protected-textarea"
+                  readonly
+                  placeholder="Le résumé des pièces jointes du mail de création apparaîtra ici."
+                ></textarea>
+                <div class="audio-controls" data-audio-for="creationOutputAttachmentsSummaryResult">
+                  <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
+                  <button class="mode-button" data-audio-play type="button">Lire</button>
+                  <button class="mode-button" data-audio-pause type="button">Pause</button>
+                  <button class="mode-button" data-audio-resume type="button">Reprendre</button>
+                  <button class="mode-button" data-audio-stop type="button">Stop audio</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="mail-actions">
+              <button class="action-button send-button" id="creationSendBtn" type="button">
+                Valider l’envoi
+                <span class="action-counter" id="creationSendCount">0</span>
+              </button>
+
+              <button class="action-button reject-button" id="creationRejectBtn" type="button">
+                Rejet
+                <span class="action-counter" id="creationRejectCount">0</span>
+              </button>
+
+              <button class="action-button delete-button" id="creationDeleteBtn" type="button">
+                Suppression
+                <span class="action-counter" id="creationDeleteCount">0</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="replyWorkspace" class="glass-card mail-workspace-board hidden-panel">
+        <div class="mail-columns">
+          <div class="mail-column left-column">
+            <div class="mail-column-title">
+              <h2>Contenu du mail reçu</h2>
+            </div>
+
+            <div class="mail-editor-block">
+              <label for="receivedMailContent" class="editor-label">Contenu du mail reçu</label>
+              <p class="settings-help form-feedback is-info" id="replyAttachmentsInfo">Aucune pièce jointe détectée.</p>
+              <div class="mail-actions">
+                <button class="action-button hidden-panel" type="button" data-text-setting="translationActionsEnabled" data-text-action="translate" data-text-target="mail reçu">Traduire</button>
+                <button class="action-button hidden-panel" type="button" data-text-setting="summaryActionsEnabled" data-text-action="summarize" data-text-target="mail reçu">Résumer</button>
+              </div>
+              <div class="audio-controls" data-audio-for="receivedMailContent">
+                <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
+                <button class="mode-button" data-audio-play type="button">Lire</button>
+                <button class="mode-button" data-audio-pause type="button">Pause</button>
+                <button class="mode-button" data-audio-resume type="button">Reprendre</button>
+                <button class="mode-button" data-audio-stop type="button">Stop audio</button>
+              </div>
+              <p class="settings-help" id="receivedMailDetectedLanguage" aria-live="polite">Langue détectée : en attente</p>
+              <textarea
+                id="receivedMailContent"
+                class="mail-textarea protected-textarea"
+                readonly
+                placeholder="Le mail reçu s’affichera ici automatiquement."
+              ></textarea>
+              <div id="receivedMailTranslationPanel" class="suggestion-assistant hidden-panel" aria-hidden="true">
+                <div class="suggestion-assistant-header">
+                  <span class="editor-label">Traduction</span>
+                  <p class="settings-help" id="receivedMailTranslationFeedback">La traduction apparaîtra ici.</p>
+                </div>
+                <textarea
+                  id="receivedMailTranslationResult"
+                  class="mail-textarea output-textarea protected-textarea"
+                  readonly
+                  placeholder="La traduction du mail reçu apparaîtra ici."
+                ></textarea>
+                <div class="audio-controls" data-audio-for="receivedMailTranslationResult">
+                  <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
+                  <button class="mode-button" data-audio-play type="button">Lire</button>
+                  <button class="mode-button" data-audio-pause type="button">Pause</button>
+                  <button class="mode-button" data-audio-resume type="button">Reprendre</button>
+                  <button class="mode-button" data-audio-stop type="button">Stop audio</button>
+                </div>
+              </div>
+              <div id="receivedMailSummaryPanel" class="suggestion-assistant hidden-panel" aria-hidden="true">
+                <div class="suggestion-assistant-header">
+                  <span class="editor-label">Résumé</span>
+                  <p class="settings-help" id="receivedMailSummaryFeedback">Le résumé apparaîtra ici.</p>
+                </div>
+                <textarea
+                  id="receivedMailSummaryResult"
+                  class="mail-textarea output-textarea protected-textarea"
+                  readonly
+                  placeholder="Le résumé du mail reçu apparaîtra ici."
+                ></textarea>
+                <div class="audio-controls" data-audio-for="receivedMailSummaryResult">
+                  <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
+                  <button class="mode-button" data-audio-play type="button">Lire</button>
+                  <button class="mode-button" data-audio-pause type="button">Pause</button>
+                  <button class="mode-button" data-audio-resume type="button">Reprendre</button>
+                  <button class="mode-button" data-audio-stop type="button">Stop audio</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="attachments-block">
+              <label for="receivedAttachments" class="editor-label">Pièces jointes reçues</label>
+              <div class="mail-actions">
+                <button class="action-button hidden-panel" type="button" data-text-setting="translationActionsEnabled" data-text-action="translate" data-text-target="pièces jointes reçues">Traduire</button>
+                <button class="action-button hidden-panel" type="button" data-text-setting="summaryActionsEnabled" data-text-action="summarize" data-text-target="pièces jointes reçues">Résumer</button>
+              </div>
+              <input
+                id="receivedAttachments"
+                type="file"
+                class="file-input"
+                multiple
+              />
+              <div id="receivedAttachmentsPreview" class="attachment-preview-list">
+                <p class="settings-help">Aucune pièce jointe chargée.</p>
+              </div>
+              <div id="receivedAttachmentsSelectionPanel" class="suggestion-assistant hidden-panel" aria-hidden="true">
+                <label class="settings-help" for="receivedAttachmentsTranslationSelect">Fichier à traduire</label>
+                <select id="receivedAttachmentsTranslationSelect" class="settings-select">
+                  <option value="">Sélectionner une pièce jointe</option>
+                </select>
+              </div>
+              <div id="receivedAttachmentsTranslationPanel" class="suggestion-assistant hidden-panel" aria-hidden="true">
+                <div class="suggestion-assistant-header">
+                  <span class="editor-label">Traduction</span>
+                  <p class="settings-help" id="receivedAttachmentsTranslationFeedback">La traduction des pièces jointes apparaîtra ici.</p>
+                </div>
+                <textarea
+                  id="receivedAttachmentsTranslationResult"
+                  class="mail-textarea output-textarea protected-textarea"
+                  readonly
+                  placeholder="La traduction des pièces jointes reçues apparaîtra ici."
+                ></textarea>
+                <div class="audio-controls" data-audio-for="receivedAttachmentsTranslationResult">
+                  <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
+                  <button class="mode-button" data-audio-play type="button">Lire</button>
+                  <button class="mode-button" data-audio-pause type="button">Pause</button>
+                  <button class="mode-button" data-audio-resume type="button">Reprendre</button>
+                  <button class="mode-button" data-audio-stop type="button">Stop audio</button>
+                </div>
+              </div>
+              <div id="receivedAttachmentsSummaryPanel" class="suggestion-assistant hidden-panel" aria-hidden="true">
+                <div class="suggestion-assistant-header">
+                  <span class="editor-label">Résumé</span>
+                  <p class="settings-help" id="receivedAttachmentsSummaryFeedback">Le résumé des pièces jointes apparaîtra ici.</p>
+                </div>
+                <textarea
+                  id="receivedAttachmentsSummaryResult"
+                  class="mail-textarea output-textarea protected-textarea"
+                  readonly
+                  placeholder="Le résumé des pièces jointes reçues apparaîtra ici."
+                ></textarea>
+                <div class="audio-controls" data-audio-for="receivedAttachmentsSummaryResult">
+                  <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
+                  <button class="mode-button" data-audio-play type="button">Lire</button>
+                  <button class="mode-button" data-audio-pause type="button">Pause</button>
+                  <button class="mode-button" data-audio-resume type="button">Reprendre</button>
+                  <button class="mode-button" data-audio-stop type="button">Stop audio</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mail-column right-column">
+            <div class="mail-column-title">
+              <h2>Réponse au mail</h2>
+            </div>
+
+            <div class="mail-collaboration-banner" id="mailCollaborationBanner">
+              <button class="mail-collaboration-indicator is-neutral" id="mailCollaborationIndicator" type="button">
+                Multi désactivé
+              </button>
+              <p class="settings-help" id="mailCollaborationText">Aucun mail ouvert.</p>
+            </div>
+
+            <div class="mail-editor-block">
+              <label for="replyOutputMailContent" class="editor-label">Contenu éditable</label>
+              <div class="mail-actions">
+                <button class="action-button send-button" id="replyGenerateBtn" type="button">Generer la reponse</button>
+                <button class="action-button" id="replyRegenerateBtn" type="button">Regenerer avec le LLM choisi</button>
+                <button class="action-button" id="replyDictionaryEditorBtn" type="button">Modifier avec dictionnaire</button>
+                <button class="action-button hidden-panel" type="button" data-text-setting="translationActionsEnabled" data-text-action="translate" data-text-target="réponse au mail">Traduire</button>
+                <button class="action-button hidden-panel" type="button" data-text-setting="summaryActionsEnabled" data-text-action="summarize" data-text-target="réponse au mail">Résumer</button>
+                <button class="action-button hidden-panel" type="button" data-text-setting="rephraseActionsEnabled" data-text-action="rephrase" data-text-target="réponse au mail">Reformuler</button>
+              </div>
+              <p class="settings-help form-feedback is-info" id="replyGenerationFeedback">La reponse sera generee avec le LLM selectionne dans la barre du haut.</p>
+              <div id="replyAiTrace" class="attachment-preview-list">
+                <p class="settings-help">Trace IA non disponible pour le moment.</p>
+              </div>
+              <div class="audio-controls" data-audio-for="replyOutputMailContent">
+                <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
+                <button class="mode-button" data-audio-play type="button">Lire</button>
+                <button class="mode-button" data-audio-pause type="button">Pause</button>
+                <button class="mode-button" data-audio-resume type="button">Reprendre</button>
+                <button class="mode-button" data-audio-stop type="button">Stop audio</button>
+              </div>
+              <div class="audio-input-controls" data-audio-input-for="replyOutputMailContent">
+                <button class="audio-input-toggle-button" data-audio-input-start type="button">Dicter</button>
+                <button class="mode-button" data-audio-input-pause type="button">Pause</button>
+                <button class="mode-button" data-audio-input-resume type="button">Reprendre</button>
+                <button class="mode-button" data-audio-input-stop type="button">Stop dictée</button>
+                <select class="settings-select audio-input-mode" data-audio-input-mode>
+                  <option value="cursor">Insérer au curseur</option>
+                  <option value="selection">Remplacer sélection</option>
+                  <option value="append">Ajouter à la fin</option>
+                  <option value="ai-command">Commande IA locale</option>
+                </select>
+                <span class="settings-help audio-input-status" data-audio-input-status>Dictée inactive.</span>
+              </div>
+              <textarea
+                id="replyOutputMailContent"
+                class="mail-textarea output-textarea"
+                placeholder="La réponse générée apparaîtra ici, avec possibilité de modification."
+              ></textarea>
+              <div id="replyOutputTranslationPanel" class="suggestion-assistant hidden-panel" aria-hidden="true">
+                <div class="suggestion-assistant-header">
+                  <span class="editor-label">Traduction</span>
+                  <p class="settings-help" id="replyOutputTranslationFeedback">La traduction apparaîtra ici.</p>
+                </div>
+                <textarea
+                  id="replyOutputTranslationResult"
+                  class="mail-textarea output-textarea protected-textarea"
+                  readonly
+                  placeholder="La traduction de la réponse apparaîtra ici."
+                ></textarea>
+                <div class="audio-controls" data-audio-for="replyOutputTranslationResult">
+                  <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
+                  <button class="mode-button" data-audio-play type="button">Lire</button>
+                  <button class="mode-button" data-audio-pause type="button">Pause</button>
+                  <button class="mode-button" data-audio-resume type="button">Reprendre</button>
+                  <button class="mode-button" data-audio-stop type="button">Stop audio</button>
+                </div>
+              </div>
+              <div id="replyOutputSummaryPanel" class="suggestion-assistant hidden-panel" aria-hidden="true">
+                <div class="suggestion-assistant-header">
+                  <span class="editor-label">Résumé</span>
+                  <p class="settings-help" id="replyOutputSummaryFeedback">Le résumé apparaîtra ici.</p>
+                </div>
+                <textarea
+                  id="replyOutputSummaryResult"
+                  class="mail-textarea output-textarea protected-textarea"
+                  readonly
+                  placeholder="Le résumé de la réponse apparaîtra ici."
+                ></textarea>
+                <div class="audio-controls" data-audio-for="replyOutputSummaryResult">
+                  <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
+                  <button class="mode-button" data-audio-play type="button">Lire</button>
+                  <button class="mode-button" data-audio-pause type="button">Pause</button>
+                  <button class="mode-button" data-audio-resume type="button">Reprendre</button>
+                  <button class="mode-button" data-audio-stop type="button">Stop audio</button>
+                </div>
+              </div>
+              <div id="replyOutputRephrasePanel" class="suggestion-assistant hidden-panel" aria-hidden="true">
+                <div class="suggestion-assistant-header">
+                  <span class="editor-label">Reformulation</span>
+                  <p class="settings-help" id="replyOutputRephraseFeedback">La reformulation apparaîtra ici.</p>
+                </div>
+                <textarea
+                  id="replyOutputRephraseResult"
+                  class="mail-textarea output-textarea protected-textarea"
+                  readonly
+                  placeholder="La reformulation de la réponse apparaîtra ici."
+                ></textarea>
+                <div class="audio-controls" data-audio-for="replyOutputRephraseResult">
+                  <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
+                  <button class="mode-button" data-audio-play type="button">Lire</button>
+                  <button class="mode-button" data-audio-pause type="button">Pause</button>
+                  <button class="mode-button" data-audio-resume type="button">Reprendre</button>
+                  <button class="mode-button" data-audio-stop type="button">Stop audio</button>
+                </div>
+              </div>
+              <div class="suggestion-assistant hidden-panel" data-suggestion-assistant="replyOutputMailContent">
+                <div class="suggestion-assistant-header">
+                  <span class="editor-label">Dictionnaire dynamique</span>
+                  <p class="settings-help">Le panneau se réduit au fur et à mesure de la frappe. Clique sur un mot pour l'insérer.</p>
+                </div>
+                <div class="suggestion-chip-list" id="replyOutputSuggestions" aria-live="polite">
+                  <p class="settings-help">Les suggestions apparaîtront ici pendant la rédaction.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="attachments-block">
+              <label for="replyAttachments" class="editor-label">Pièces jointes (facultatif)</label>
+              <div class="mail-actions">
+                <button class="action-button hidden-panel" type="button" data-text-setting="translationActionsEnabled" data-text-action="translate" data-text-target="pièces jointes de réponse">Traduire</button>
+                <button class="action-button hidden-panel" type="button" data-text-setting="summaryActionsEnabled" data-text-action="summarize" data-text-target="pièces jointes de réponse">Résumer</button>
+              </div>
+              <input
+                id="replyAttachments"
+                type="file"
+                class="file-input"
+                multiple
+              />
+              <div id="replyAttachmentsPreview" class="attachment-preview-list">
+                <p class="settings-help">Aucune pièce jointe chargée.</p>
+              </div>
+              <div id="replyAttachmentsSelectionPanel" class="suggestion-assistant hidden-panel" aria-hidden="true">
+                <label class="settings-help" for="replyAttachmentsTranslationSelect">Fichier à traduire</label>
+                <select id="replyAttachmentsTranslationSelect" class="settings-select">
+                  <option value="">Sélectionner une pièce jointe</option>
+                </select>
+              </div>
+              <div id="replyAttachmentsTranslationPanel" class="suggestion-assistant hidden-panel" aria-hidden="true">
+                <div class="suggestion-assistant-header">
+                  <span class="editor-label">Traduction</span>
+                  <p class="settings-help" id="replyAttachmentsTranslationFeedback">La traduction des pièces jointes apparaîtra ici.</p>
+                </div>
+                <textarea
+                  id="replyAttachmentsTranslationResult"
+                  class="mail-textarea output-textarea protected-textarea"
+                  readonly
+                  placeholder="La traduction des pièces jointes de réponse apparaîtra ici."
+                ></textarea>
+                <div class="audio-controls" data-audio-for="replyAttachmentsTranslationResult">
+                  <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
+                  <button class="mode-button" data-audio-play type="button">Lire</button>
+                  <button class="mode-button" data-audio-pause type="button">Pause</button>
+                  <button class="mode-button" data-audio-resume type="button">Reprendre</button>
+                  <button class="mode-button" data-audio-stop type="button">Stop audio</button>
+                </div>
+              </div>
+              <div id="replyAttachmentsSummaryPanel" class="suggestion-assistant hidden-panel" aria-hidden="true">
+                <div class="suggestion-assistant-header">
+                  <span class="editor-label">Résumé</span>
+                  <p class="settings-help" id="replyAttachmentsSummaryFeedback">Le résumé des pièces jointes apparaîtra ici.</p>
+                </div>
+                <textarea
+                  id="replyAttachmentsSummaryResult"
+                  class="mail-textarea output-textarea protected-textarea"
+                  readonly
+                  placeholder="Le résumé des pièces jointes de réponse apparaîtra ici."
+                ></textarea>
+                <div class="audio-controls" data-audio-for="replyAttachmentsSummaryResult">
+                  <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
+                  <button class="mode-button" data-audio-play type="button">Lire</button>
+                  <button class="mode-button" data-audio-pause type="button">Pause</button>
+                  <button class="mode-button" data-audio-resume type="button">Reprendre</button>
+                  <button class="mode-button" data-audio-stop type="button">Stop audio</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="mail-actions">
+              <button class="action-button send-button" id="replySendBtn" type="button">
+                Valider l’envoi
+                <span class="action-counter" id="replySendCount">0</span>
+              </button>
+
+              <button class="action-button reject-button" id="replyRejectBtn" type="button">
+                Rejet
+                <span class="action-counter" id="replyRejectCount">0</span>
+              </button>
+
+              <button class="action-button delete-button" id="replyDeleteBtn" type="button">
+                Suppression
+                <span class="action-counter" id="replyDeleteCount">0</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/frontend/js/audioReader.js"></script>
+  <script src="/frontend/js/liveSpeechClient.js"></script>
+  <script src="/frontend/js/audioInput.js"></script>
+  <script src="/frontend/js/predictive-dictionary.js"></script>
+  <script src="/frontend/js/dictionary-editor.js"></script>
+  <script src="/frontend/js/mail.js"></script>
+  <script src="/frontend/js/sidebar.js"></script>
+</body>
+</html>

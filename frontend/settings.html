@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Paramètres</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Inter:wght@400;500;600;700;800&family=Lexend:wght@400;500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/frontend/css/styles.css" />
+</head>
+<body data-theme="midnight">
+  <div class="app-shell">
+    <!-- SIDEBAR -->
+
+    <main class="main-content">
+      <header class="hero-header glass-card">
+        <div class="hero-header-text">
+          <p class="eyebrow">Configuration</p>
+          <h1>Paramètres</h1>
+          <p class="subtitle">Piloter l’affichage, l’accessibilité, l’assistance IA et le comportement de l’application tout en visualisant le résultat.</p>
+        </div>
+      </header>
+
+      <section class="settings-toolbar glass-card">
+        <div>
+          <span class="section-tag">Aide à la décision</span>
+          <h3>Prévisualiser avant d’adopter</h3>
+          <p class="section-note">Le popup d’aperçu permet d’évaluer visuellement les choix d’affichage et d’accessibilité avant de les généraliser.</p>
+        </div>
+
+        <div class="mail-actions">
+          <button class="action-button send-button" id="openPreviewBtn" type="button">Ouvrir l’aperçu</button>
+        </div>
+      </section>
+
+      <section class="glass-card settings-card">
+        <span class="section-tag">Session</span>
+        <h3>Utilisateur connecté</h3>
+        <div class="settings-form-grid">
+          <div class="settings-field settings-field-full">
+            <div class="account-summary-card">
+              <p class="account-summary-title" id="settingsSessionIdentity">Vérification de la session en cours...</p>
+              <p class="settings-help" id="settingsSessionDetails">Les paramètres affichés doivent toujours correspondre au compte actuellement connecté.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="settings-grid">
+        <article class="glass-card settings-card">
+          <span class="section-tag">1. Affichage</span>
+          <h3>Confort visuel</h3>
+
+          <div class="settings-form-grid">
+            <div class="settings-field settings-field-full">
+              <label for="settingsTheme">Thème</label>
+              <select id="settingsTheme" class="settings-select">
+                <option value="blue-violet">Bleu -> Violet</option>
+                <option value="emerald-blue">Emeraude -> Bleu</option>
+                <option value="sunset">Cuivre -> Bordeaux</option>
+                <option value="midnight">Anthracite profond</option>
+              </select>
+              <p class="settings-help">Thème par défaut recommandé : Bleu -> Violet. Le choix reste aussi accessible depuis la sidebar.</p>
+            </div>
+
+            <div class="settings-field">
+              <label for="fontFamilySelect">Police de caractère</label>
+              <select id="fontFamilySelect" class="settings-select">
+                <option value="Inter">Inter</option>
+                <option value="Atkinson Hyperlegible">Atkinson Hyperlegible</option>
+                <option value="Lexend">Lexend</option>
+                <option value="Source Sans 3">Source Sans 3</option>
+              </select>
+            </div>
+
+            <div class="settings-field">
+              <label for="fontSizeSelect">Taille du texte</label>
+              <select id="fontSizeSelect" class="settings-select">
+                <option value="normal">Normal</option>
+                <option value="large">Large</option>
+                <option value="extra-large">Extra large</option>
+              </select>
+            </div>
+
+            <div class="settings-field">
+              <label for="lineSpacingSelect">Espacement des lignes</label>
+              <select id="lineSpacingSelect" class="settings-select">
+                <option value="standard">Standard</option>
+                <option value="comfort">Confort</option>
+                <option value="airy">Très aéré</option>
+              </select>
+            </div>
+
+            <div class="settings-field">
+              <label for="readingWidthSelect">Largeur de lecture</label>
+              <select id="readingWidthSelect" class="settings-select">
+                <option value="standard">Standard</option>
+                <option value="reduced">Réduite</option>
+                <option value="very-reduced">Très réduite</option>
+              </select>
+              <p class="settings-help">Le cadre général reste identique, mais la ligne de texte est volontairement raccourcie pour afficher moins de mots par ligne.</p>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label class="settings-toggle">
+                <input id="contrastSimulationToggle" type="checkbox" />
+                <span>Simuler un contraste renforcé dans l’aperçu</span>
+              </label>
+              <p class="settings-help">Simulation uniquement pour évaluer son intérêt, sans modifier immédiatement l’interface actuelle du produit.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="glass-card settings-card">
+          <span class="section-tag">2. Accessibilité</span>
+          <h3>Réduction de l’effort</h3>
+
+          <div class="settings-form-grid">
+            <div class="settings-field">
+              <label for="scrollSpeedSelect">Vitesse de scroll</label>
+              <select id="scrollSpeedSelect" class="settings-select">
+                <option value="slow">Lent</option>
+                <option value="normal">Normal</option>
+                <option value="fast">Rapide</option>
+              </select>
+            </div>
+
+            <div class="settings-field">
+              <label for="contentStepSelect">Quantité affichée à chaque étape</label>
+              <select id="contentStepSelect" class="settings-select">
+                <option value="1">1 paragraphe</option>
+                <option value="2">2 paragraphes</option>
+                <option value="3">3 paragraphes</option>
+                <option value="unlimited">Illimité</option>
+              </select>
+              <p class="settings-help">Paramètre obligatoire. En mode manuel, les flèches permettent d’avancer paragraphe par paragraphe selon cette quantité.</p>
+            </div>
+
+            <div class="settings-field">
+              <label for="progressUnitInput">Unité de progression (ms / mot)</label>
+              <input id="progressUnitInput" class="settings-select" type="number" min="120" max="1200" step="10" value="320" />
+              <p class="settings-help">Valeur numérique standard modifiable. Elle servira plus tard à calculer automatiquement le temps de lecture.</p>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label class="settings-toggle">
+                <input id="progressiveReadingToggle" type="checkbox" />
+                <span>Lecture progressive activée</span>
+              </label>
+              <p class="settings-help">Désactivée : lecture entièrement manuelle avec flèches. Activée : progression automatique basée sur l’unité de progression.</p>
+            </div>
+
+            <div class="settings-field">
+              <label for="buttonSizeSelect">Taille des boutons</label>
+              <select id="buttonSizeSelect" class="settings-select">
+                <option value="normal">Normal</option>
+                <option value="large">Large</option>
+                <option value="extra-large">Extra large</option>
+              </select>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label class="settings-toggle">
+                <input id="confirmationsToggle" type="checkbox" checked />
+                <span>Confirmations renforcées avant action</span>
+              </label>
+              <p class="settings-help">La lecture progressive est pensée pour préparer aussi une future option audio.</p>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label class="settings-toggle">
+                <input id="audioOptionToggle" type="checkbox" />
+                <span>Activer la lecture audio</span>
+              </label>
+              <p class="settings-help">Commande la restitution vocale des contenus affichés. Cette option concerne la lecture, pas la dictée.</p>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label class="settings-toggle">
+                <input id="audioInputToggle" type="checkbox" />
+                <span>Activer la saisie audio pour la dictée et les corrections</span>
+              </label>
+              <p class="settings-help">Permet de dicter du texte dans les zones éditables prioritaires au lieu d'utiliser le clavier. Cette option est distincte de la lecture audio.</p>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label class="settings-toggle">
+                <input id="predictiveDictionaryToggle" type="checkbox" />
+                <span>Activer le dictionnaire dynamique pour la saisie mot par mot</span>
+              </label>
+              <p class="settings-help">Affiche sous les zones éditables un panneau qui réduit dynamiquement les candidats du dictionnaire au fur et à mesure de la frappe.</p>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label for="audioInputProviderSelect">Moteur de dictée vocale</label>
+              <select id="audioInputProviderSelect" class="settings-select">
+                <option value="deepgram">Deepgram live (recommandé)</option>
+                <option value="assemblyai">AssemblyAI live</option>
+                <option value="local">Local dégradé</option>
+              </select>
+              <p class="settings-help">L'utilisateur peut choisir le moteur de dictée. Deepgram et AssemblyAI utilisent une API payante ; le mode local reste disponible comme solution de secours.</p>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label for="audioInputDeviceSelect">Microphone pour la dictée</label>
+              <select id="audioInputDeviceSelect" class="settings-select">
+                <option value="">Automatique</option>
+              </select>
+              <p class="settings-help">Choisis ici le vrai micro a utiliser pour la dictée. En mode automatique, l'application essaie d'eviter les peripheriques virtuels comme Microsoft Teams Audio Device.</p>
+            </div>
+
+
+            <div class="settings-field settings-field-full">
+              <label for="audioVoiceLanguageSelect">Langue a configurer pour la lecture audio</label>
+              <select id="audioVoiceLanguageSelect" class="settings-select">
+                <option value="fr">Francais</option>
+                <option value="en">English</option>
+                <option value="es">Espanol</option>
+                <option value="de">Deutsch</option>
+                <option value="it">Italiano</option>
+                <option value="nl">Nederlands</option>
+                <option value="ar">Arabe</option>
+              </select>
+              <p class="settings-help">Chaque langue peut avoir sa propre voix et sa propre vitesse de lecture.</p>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label for="audioVoiceSelect">Personne / voix utilisee pour cette langue</label>
+              <select id="audioVoiceSelect" class="settings-select">
+                <option value="">Chargement des voix...</option>
+              </select>
+              <p class="settings-help">La liste est filtree sur les voix compatibles avec la langue selectionnee et evite autant que possible les voix fantaisie.</p>
+            </div>
+
+            <div class="settings-field">
+              <label for="audioVoiceRateSelect">Vitesse de lecture</label>
+              <select id="audioVoiceRateSelect" class="settings-select">
+                <option value="0.80">0.80</option>
+                <option value="0.90">0.90</option>
+                <option value="0.95">0.95</option>
+                <option value="1.00">1.00</option>
+                <option value="1.05">1.05</option>
+                <option value="1.10">1.10</option>
+                <option value="1.20">1.20</option>
+              </select>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label for="audioVoiceTestText">Texte de test pour cette langue</label>
+              <textarea id="audioVoiceTestText" class="settings-textarea" rows="3" spellcheck="false"></textarea>
+              <p class="settings-help">Tu peux conserver la phrase proposee ou la remplacer avant de tester la voix.</p>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+                <button id="audioVoiceTestButton" type="button" class="primary-btn">Tester cette voix</button>
+                <button id="audioVoiceSaveButton" type="button" class="secondary-btn">Enregistrer ce choix pour la langue</button>
+              </div>
+              <p id="audioVoiceFeedback" class="settings-help form-feedback is-info">Choisis une langue, une voix, puis teste avant d'enregistrer.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="glass-card settings-card">
+          <span class="section-tag">3. Aides texte</span>
+          <h3>Traduction, résumé, reformulation</h3>
+
+          <div class="settings-form-grid">
+            <div class="settings-field settings-field-full">
+              <p class="settings-help">
+                Ces options affichent ou masquent des actions complémentaires dans les blocs texte du module mail.
+                Elles n’alourdissent pas l’interface tant qu’elles restent désactivées.
+              </p>
+            </div>
+
+            <div class="settings-field settings-field-full settings-checklist">
+              <label class="settings-toggle">
+                <input id="translationActionsToggle" type="checkbox" />
+                <span>Afficher les boutons Traduire</span>
+              </label>
+              <label class="settings-toggle">
+                <input id="summaryActionsToggle" type="checkbox" />
+                <span>Afficher les boutons Résumer</span>
+              </label>
+              <label class="settings-toggle">
+                <input id="rephraseActionsToggle" type="checkbox" checked />
+                <span>Afficher les boutons Reformuler</span>
+              </label>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label for="translationTargetLanguageSelect">Langue cible des traductions</label>
+              <select id="translationTargetLanguageSelect" class="settings-select">
+                <option value="fr">Français</option>
+                <option value="en">English</option>
+                <option value="es">Español</option>
+                <option value="de">Deutsch</option>
+                <option value="it">Italiano</option>
+                <option value="nl">Nederlands</option>
+                <option value="ar">Arabe</option>
+              </select>
+              <p class="settings-help">Valeur par défaut recommandée : français. Cette langue sert uniquement aux futures actions Traduire.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="glass-card settings-card">
+          <span class="section-tag">4. Assistance IA</span>
+          <h3>Comportement par défaut</h3>
+
+          <div class="settings-form-grid">
+            <div class="settings-field">
+              <label for="defaultModelSelect">Modèle IA par défaut</label>
+              <select id="defaultModelSelect" class="settings-select">
+                <option value="mistral-api">Mistral API</option>
+                <option value="deepseek-chat" selected>DeepSeek Chat (API)</option>
+                <option value="deepseek-reasoner">DeepSeek Reasoner (API)</option>
+              </select>
+            </div>
+
+            <div class="settings-field">
+              <label for="assistanceLevelSelect">Niveau d’assistance</label>
+              <select id="assistanceLevelSelect" class="settings-select">
+                <option value="suggestion">Suggestion simple</option>
+                <option value="active">Assistance active</option>
+                <option value="advanced">Assistance avancée</option>
+              </select>
+            </div>
+
+            <div class="settings-field">
+              <label for="defaultToneSelect">Ton par défaut</label>
+              <select id="defaultToneSelect" class="settings-select">
+                <option value="professional">Professionnel</option>
+                <option value="warm">Chaleureux</option>
+                <option value="short">Court</option>
+              </select>
+            </div>
+
+            <div class="settings-field">
+              <label for="defaultLengthSelect">Longueur par défaut</label>
+              <select id="defaultLengthSelect" class="settings-select">
+                <option value="short">Courte</option>
+                <option value="standard">Standard</option>
+                <option value="detailed">Détaillée</option>
+              </select>
+            </div>
+
+            <div class="settings-field">
+              <label for="generationModeSelect">Génération</label>
+              <select id="generationModeSelect" class="settings-select">
+                <option value="manual">Sur demande</option>
+                <option value="automatic">Automatique</option>
+              </select>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label class="settings-toggle">
+                <input id="comparisonToggle" type="checkbox" checked />
+                <span>Autoriser la comparaison de plusieurs tons et longueurs</span>
+              </label>
+            </div>
+          </div>
+        </article>
+
+        <article class="glass-card settings-card">
+          <span class="section-tag">5. Gestion des mails</span>
+          <h3>Comportement métier</h3>
+
+          <div class="settings-form-grid">
+            <div class="settings-field">
+              <label for="defaultModeSelect">Mode par défaut</label>
+              <select id="defaultModeSelect" class="settings-select">
+                <option value="creation">Création</option>
+                <option value="reply">Réponse</option>
+              </select>
+            </div>
+
+            <div class="settings-field">
+              <label for="attachmentsModeSelect">Gestion des pièces jointes</label>
+              <select id="attachmentsModeSelect" class="settings-select">
+                <option value="signal">Signaler uniquement</option>
+                <option value="manual">Ouverture manuelle</option>
+                <option value="assisted">Ouverture assistée si nécessaire</option>
+              </select>
+            </div>
+
+            <div class="settings-field settings-field-full settings-checklist">
+              <label class="settings-toggle">
+                <input id="classificationToggle" type="checkbox" checked />
+                <span>Afficher la classification</span>
+              </label>
+              <label class="settings-toggle">
+                <input id="priorityToggle" type="checkbox" checked />
+                <span>Afficher la priorité</span>
+              </label>
+              <label class="settings-toggle">
+                <input id="simulationToggle" type="checkbox" checked />
+                <span>Simulation d’envoi activée</span>
+              </label>
+              <label class="settings-toggle">
+                <input id="validationToggle" type="checkbox" checked />
+                <span>Validation obligatoire avant envoi</span>
+              </label>
+              <label class="settings-toggle">
+                <input id="deleteConfirmationToggle" type="checkbox" checked />
+                <span>Confirmation avant suppression</span>
+              </label>
+              <label class="settings-toggle">
+                <input id="draftToggle" type="checkbox" />
+                <span>Brouillon automatique</span>
+              </label>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <p class="settings-help">
+                En logique d'assistance, une demande de pause peut correspondre a une intention potentielle de modification.
+                Pour le moment, les modifications restent manuelles. Plus tard, ce signal pourra aider
+                l'automatisation et les usages avec Browser Use.
+              </p>
+              <p class="settings-help">
+                Une aide legere a la modification pourra aussi etre ajoutee plus tard :
+                proposition de mots a partir de quelques frappes, expression d'une demande de modification par prompt,
+                puis adaptations ergonomiques plus avancees avec accompagnement specialise si necessaire.
+              </p>
+            </div>
+          </div>
+        </article>
+
+        <article class="glass-card settings-card">
+          <span class="section-tag">6. Fournisseurs API</span>
+          <h3>Configuration personnelle et coûts</h3>
+
+          <div class="settings-form-grid">
+            <div class="settings-field settings-field-full">
+              <p class="settings-help">Chaque utilisateur peut rattacher ses propres fournisseurs payants. Le moteur de dictée par défaut reste sélectionnable plus haut dans cette page.</p>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <div class="account-summary-card">
+                <p class="account-summary-title">Deepgram</p>
+                <div class="settings-form-grid">
+                  <div class="settings-field settings-field-full">
+                    <label for="deepgramApiKeyInput">Clé API Deepgram</label>
+                    <input id="deepgramApiKeyInput" class="settings-select" type="password" placeholder="Coller la clé Deepgram" />
+                  </div>
+                  <div class="settings-field">
+                    <label class="settings-toggle">
+                      <input id="deepgramDefaultToggle" type="checkbox" />
+                      <span>Définir comme fournisseur par défaut</span>
+                    </label>
+                  </div>
+                  <div class="settings-field settings-field-full">
+                    <div class="mail-actions">
+                      <button class="action-button" id="deepgramSaveProviderBtn" type="button">Enregistrer Deepgram</button>
+                      <button class="action-button secondary-button" id="deepgramTestProviderBtn" type="button">Tester Deepgram</button>
+                    </div>
+                  </div>
+                  <div class="settings-field settings-field-full">
+                    <p class="settings-help form-feedback is-info" id="deepgramProviderFeedback">Deepgram non configuré.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <div class="account-summary-card">
+                <p class="account-summary-title">AssemblyAI</p>
+                <div class="settings-form-grid">
+                  <div class="settings-field settings-field-full">
+                    <label for="assemblyaiApiKeyInput">Clé API AssemblyAI</label>
+                    <input id="assemblyaiApiKeyInput" class="settings-select" type="password" placeholder="Coller la clé AssemblyAI" />
+                  </div>
+                  <div class="settings-field">
+                    <label class="settings-toggle">
+                      <input id="assemblyaiDefaultToggle" type="checkbox" />
+                      <span>Définir comme fournisseur par défaut</span>
+                    </label>
+                  </div>
+                  <div class="settings-field settings-field-full">
+                    <div class="mail-actions">
+                      <button class="action-button" id="assemblyaiSaveProviderBtn" type="button">Enregistrer AssemblyAI</button>
+                      <button class="action-button secondary-button" id="assemblyaiTestProviderBtn" type="button">Tester AssemblyAI</button>
+                    </div>
+                  </div>
+                  <div class="settings-field settings-field-full">
+                    <p class="settings-help form-feedback is-info" id="assemblyaiProviderFeedback">AssemblyAI non configuré.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <div class="account-summary-card">
+                <p class="account-summary-title">DeepSeek API</p>
+                <div class="settings-form-grid">
+                  <div class="settings-field settings-field-full">
+                    <label for="deepseekApiKeyInput">Clé API DeepSeek</label>
+                    <input id="deepseekApiKeyInput" class="settings-select" type="password" placeholder="Coller la clé DeepSeek API" />
+                  </div>
+                  <div class="settings-field">
+                    <label class="settings-toggle">
+                      <input id="deepseekDefaultToggle" type="checkbox" />
+                      <span>Préférer DeepSeek API pour l'IA texte</span>
+                    </label>
+                  </div>
+                  <div class="settings-field settings-field-full">
+                    <div class="mail-actions">
+                      <button class="action-button" id="deepseekSaveProviderBtn" type="button">Enregistrer DeepSeek API</button>
+                      <button class="action-button secondary-button" id="deepseekTestProviderBtn" type="button">Tester DeepSeek API</button>
+                    </div>
+                  </div>
+                  <div class="settings-field settings-field-full">
+                    <p class="settings-help form-feedback is-info" id="deepseekProviderFeedback">DeepSeek API non configuré.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <div class="account-summary-card">
+                <p class="account-summary-title">Mistral API</p>
+                <div class="settings-form-grid">
+                  <div class="settings-field settings-field-full">
+                    <label for="mistralApiKeyInput">Clé API Mistral</label>
+                    <input id="mistralApiKeyInput" class="settings-select" type="password" placeholder="Coller la clé Mistral API" />
+                  </div>
+                  <div class="settings-field">
+                    <label class="settings-toggle">
+                      <input id="mistralDefaultToggle" type="checkbox" />
+                      <span>Préférer Mistral API pour l'IA texte</span>
+                    </label>
+                  </div>
+                  <div class="settings-field settings-field-full">
+                    <div class="mail-actions">
+                      <button class="action-button" id="mistralSaveProviderBtn" type="button">Enregistrer Mistral API</button>
+                      <button class="action-button secondary-button" id="mistralTestProviderBtn" type="button">Tester Mistral API</button>
+                    </div>
+                  </div>
+                  <div class="settings-field settings-field-full">
+                    <p class="settings-help form-feedback is-info" id="mistralProviderFeedback">Mistral API non configuré.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <div class="account-summary-card" id="providerUsageSummaryCard">
+                <p class="account-summary-title">Consommation estimée</p>
+                <p class="settings-help" id="providerUsageSummary">Aucune consommation enregistrée pour le moment.</p>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <div class="settings-preview-modal hidden-panel" id="previewModal" aria-hidden="true">
+    <div class="settings-preview-backdrop" id="previewBackdrop"></div>
+    <div class="settings-preview-panel glass-card" role="dialog" aria-modal="true" aria-labelledby="previewTitle">
+      <div class="settings-preview-header">
+        <div>
+          <span class="section-tag">Aperçu en direct</span>
+          <h3 id="previewTitle">Simulation visuelle des paramètres</h3>
+        </div>
+        <div class="settings-preview-header-actions">
+          <span class="settings-preview-status-badge status-manual" id="previewStatusBadge">Lecture manuelle</span>
+          <button class="mode-button" id="closePreviewBtn" type="button">Fermer</button>
+        </div>
+      </div>
+
+      <div class="settings-preview-surface" id="previewSurface">
+        <section class="settings-preview-card">
+          <p class="eyebrow" id="previewContextLabel">Simulation de traitement</p>
+          <h2 class="settings-preview-heading" id="previewHeading">Votre configuration de lecture assistée</h2>
+
+          <div class="settings-preview-badges" id="previewBadges"></div>
+
+          <article class="settings-preview-mail-block">
+            <div class="settings-preview-block-head">
+              <p class="settings-preview-block-label" id="previewSourceLabel">Mail reçu</p>
+              <label class="settings-preview-llm-picker">
+                <span>LLM entrée</span>
+                <select id="previewInputModelSelect" class="settings-select">
+                  <option value="mistral-api">Mistral API</option>
+                  <option value="deepseek-chat" selected>DeepSeek chat</option>
+                  <option value="deepseek-reasoner">DeepSeek reasoner</option>
+                </select>
+              </label>
+            </div>
+            <div class="settings-preview-controls" id="previewProgressControls">
+              <button class="settings-preview-button secondary" id="previewPrevStepButton" type="button">← Précédent</button>
+              <p class="settings-preview-step-indicator" id="previewStepIndicator">Étape 1 / 1</p>
+              <button class="settings-preview-button secondary sound-toggle-button" id="previewInputSoundToggle" type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
+              <button class="settings-preview-button secondary" id="previewSpeakInputButton" type="button">Lire</button>
+              <button class="settings-preview-button secondary" id="previewStopInputAudioButton" type="button">Stop audio</button>
+              <button class="settings-preview-button secondary" id="previewPauseButton" type="button">Pause</button>
+              <button class="settings-preview-button secondary" id="previewResumeButton" type="button">Reprendre</button>
+              <button class="settings-preview-button secondary" id="previewNextStepButton" type="button">Suivant →</button>
+            </div>
+            <div id="previewSourceContent"></div>
+          </article>
+
+          <article class="settings-preview-mail-block">
+            <div class="settings-preview-block-head">
+              <p class="settings-preview-block-label" id="previewDraftLabel">Proposition IA</p>
+              <label class="settings-preview-llm-picker">
+                <span>LLM sortie</span>
+                <select id="previewOutputModelSelect" class="settings-select">
+                  <option value="mistral-api">Mistral API</option>
+                  <option value="deepseek-chat" selected>DeepSeek chat</option>
+                  <option value="deepseek-reasoner">DeepSeek reasoner</option>
+                </select>
+              </label>
+            </div>
+            <div class="settings-preview-ai-panel" id="previewAiPanel">
+              <div class="settings-preview-ai-meta">
+                <p class="settings-preview-meta-title">Résumé IA</p>
+                <p class="settings-preview-note" id="previewSummaryText"></p>
+              </div>
+              <div class="settings-preview-ai-meta">
+                <p class="settings-preview-meta-title">Niveau d’assistance</p>
+                <ul class="feature-list settings-preview-list" id="previewAssistanceList"></ul>
+              </div>
+            </div>
+            <div class="settings-preview-controls" id="previewDraftProgressControls">
+              <button class="settings-preview-button secondary" id="previewDraftPrevStepButton" type="button">← Précédent</button>
+              <p class="settings-preview-step-indicator" id="previewDraftStepIndicator">Étape 1 / 1</p>
+              <button class="settings-preview-button secondary sound-toggle-button" id="previewDraftSoundToggle" type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
+              <button class="settings-preview-button secondary" id="previewSpeakDraftButton" type="button">Lire</button>
+              <button class="settings-preview-button secondary" id="previewStopDraftAudioButton" type="button">Stop audio</button>
+              <button class="settings-preview-button secondary" id="previewDraftPauseButton" type="button">Pause</button>
+              <button class="settings-preview-button secondary" id="previewDraftResumeButton" type="button">Reprendre</button>
+              <button class="settings-preview-button secondary" id="previewDraftNextStepButton" type="button">Suivant →</button>
+            </div>
+            <div id="previewDraftContent"></div>
+          </article>
+
+          <div class="settings-preview-actions">
+            <button class="settings-preview-button primary" id="previewPrimaryButton" type="button">Valider l’envoi</button>
+            <button class="settings-preview-button secondary" id="previewGenerateButton" type="button">Générer</button>
+            <button class="settings-preview-button secondary" id="previewAlternateButton" type="button">Demander une autre version</button>
+            <button class="settings-preview-button secondary" id="previewScrollTestButton" type="button">Tester le scroll</button>
+          </div>
+        </section>
+
+        <section class="settings-preview-card contrast-card">
+          <p class="eyebrow">Résumé de configuration</p>
+          <ul class="feature-list settings-preview-list">
+            <li id="previewThemeLabel">Thème : midnight</li>
+            <li id="previewFontLabel">Police : Inter</li>
+            <li id="previewTextLabel">Texte : Normal</li>
+            <li id="previewSpacingLabel">Interligne : Standard</li>
+            <li id="previewWidthLabel">Largeur : Standard</li>
+            <li id="previewButtonsLabel">Boutons : Normal</li>
+          </ul>
+
+          <div class="settings-preview-meta">
+            <p class="settings-preview-meta-title">Comportement simulé</p>
+            <ul class="feature-list settings-preview-list" id="previewBehaviorList"></ul>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script src="/frontend/js/sidebar.js"></script>
+  <script src="/frontend/js/providerApiClient.js"></script>
+  <script src="/frontend/js/settings.js"></script>
+</body>
+</html>

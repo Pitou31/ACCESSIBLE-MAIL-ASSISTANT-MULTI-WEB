@@ -1,0 +1,19 @@
+{
+  "type": "mail_analysis",
+  "version": "1.0.0",
+  "mailId": "string",
+  "model": {
+    "provider": "deepseek",
+    "mode": "chat"
+  },
+  "classification": {
+    "category": "information",
+    "priority": 0,
+    "confidence": 0
+  },
+  "summary": {
+    "short": "string",
+    "detailed": "string"
+  },
+  "actions": []
+}

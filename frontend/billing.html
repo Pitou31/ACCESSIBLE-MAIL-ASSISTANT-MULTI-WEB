@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Comptabilité</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Inter:wght@400;500;600;700;800&family=Lexend:wght@400;500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/frontend/css/styles.css" />
+  <style>
+    .billing-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 18px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .billing-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 18px;
+      margin-bottom: 30px;
+    }
+
+    .billing-kpi {
+      padding: 22px;
+      min-height: 148px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .billing-kpi-label {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .billing-kpi-value {
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1.05;
+    }
+
+    .billing-kpi-detail {
+      color: var(--text-soft);
+      font-size: 0.92rem;
+    }
+
+    .billing-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 24px;
+      margin-bottom: 30px;
+    }
+
+    .billing-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .billing-list-item {
+      padding: 16px 18px;
+      border-radius: 20px;
+      border: var(--border-glass);
+      background: rgba(10, 14, 24, 0.38);
+      display: grid;
+      gap: 8px;
+    }
+
+    .billing-list-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .billing-list-title {
+      font-weight: 700;
+    }
+
+    .billing-list-meta {
+      color: var(--text-soft);
+      font-size: 0.94rem;
+    }
+
+    .billing-table-card {
+      margin-bottom: 30px;
+      overflow: hidden;
+    }
+
+    .billing-table-wrapper {
+      overflow-x: auto;
+    }
+
+    .billing-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .billing-table th,
+    .billing-table td {
+      padding: 14px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .billing-table th {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      font-weight: 700;
+    }
+
+    .billing-empty {
+      color: var(--text-soft);
+      font-size: 0.96rem;
+    }
+
+    .billing-warning {
+      color: #fbbf24;
+    }
+
+    .billing-note-list {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--text-soft);
+      display: grid;
+      gap: 10px;
+    }
+
+    .billing-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 1080px) {
+      .billing-kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .billing-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .billing-kpi-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body data-theme="midnight">
+  <div class="app-shell">
+    <!-- SIDEBAR -->
+
+    <main class="main-content">
+      <header class="hero-header glass-card">
+        <div class="hero-header-text">
+          <p class="eyebrow">Comptabilité</p>
+          <h1>Suivre la consommation par utilisateur</h1>
+          <p class="subtitle">Cette page centralise les accès API, les connexions aux boîtes mail et les consommations estimées afin de préparer la future exploitation web et la facturation par utilisateur.</p>
+        </div>
+      </header>
+
+      <section class="billing-toolbar glass-card">
+        <div>
+          <span class="section-tag">Exploitation</span>
+          <h3 id="billingScopeTitle">Vision utilisateur de la consommation</h3>
+          <p class="section-note" id="billingScopeNote">Première version : suivi du mois en cours, fournisseurs actifs, coûts estimés disponibles, connexions boîtes mail et événements récents de consommation.</p>
+        </div>
+
+        <div class="billing-actions">
+          <div class="settings-field" style="min-width: 230px;">
+            <label>Vue comptable</label>
+            <select id="billingScopeSelect">
+              <option value="account">Vue individuelle</option>
+              <option value="global">Vue consolidée</option>
+            </select>
+          </div>
+          <button class="action-button send-button" id="billingRefreshButton" type="button">Actualiser</button>
+        </div>
+      </section>
+
+      <section class="glass-card settings-card">
+        <span class="section-tag">Session</span>
+        <h3>Compte actuellement connecté</h3>
+        <div class="settings-form-grid">
+          <div class="settings-field settings-field-full">
+            <div class="account-summary-card">
+              <p class="account-summary-title" id="billingIdentity">Chargement du compte...</p>
+              <p class="settings-help" id="billingSessionDetails">Les consommations affichées ici sont rattachées au compte connecté.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="billing-kpi-grid">
+        <article class="glass-card billing-kpi">
+          <div class="billing-kpi-label">Coût estimé du mois</div>
+          <div class="billing-kpi-value" id="billingTotalCost">0,00 €</div>
+          <div class="billing-kpi-detail">Somme des coûts estimés déjà enregistrés pour ce compte.</div>
+        </article>
+        <article class="glass-card billing-kpi">
+          <div class="billing-kpi-label">Événements de consommation</div>
+          <div class="billing-kpi-value" id="billingUsageEventsCount">0</div>
+          <div class="billing-kpi-detail">Appels API ou usages tracés sur le mois en cours.</div>
+        </article>
+        <article class="glass-card billing-kpi">
+          <div class="billing-kpi-label">Fournisseurs actifs</div>
+          <div class="billing-kpi-value" id="billingActiveProvidersCount">0</div>
+          <div class="billing-kpi-detail">Clés API actives et exploitables pour le compte connecté.</div>
+        </article>
+        <article class="glass-card billing-kpi">
+          <div class="billing-kpi-label">Boîtes mail connectées</div>
+          <div class="billing-kpi-value" id="billingMailboxConnectionsCount">0</div>
+          <div class="billing-kpi-detail">Connexions OAuth ou boîte mail déjà associées au compte.</div>
+        </article>
+      </section>
+
+      <section class="billing-grid">
+        <article class="glass-card settings-card">
+          <span class="section-tag">Accès API</span>
+          <h3>Fournisseurs configurés</h3>
+          <div class="billing-list" id="billingProvidersList">
+            <p class="billing-empty">Aucun fournisseur chargé pour le moment.</p>
+          </div>
+        </article>
+
+        <article class="glass-card settings-card">
+          <span class="section-tag">Boîtes mail</span>
+          <h3>Authentifications actives</h3>
+          <div class="billing-list" id="billingMailboxList">
+            <p class="billing-empty">Aucune connexion boîte mail enregistrée pour le moment.</p>
+          </div>
+        </article>
+      </section>
+
+      <section class="glass-card settings-card billing-table-card">
+        <span class="section-tag">Budgets</span>
+        <h3>Suivi des fournisseurs API</h3>
+        <div class="billing-table-wrapper">
+          <table class="billing-table">
+            <thead>
+              <tr>
+                <th>Fournisseur</th>
+                <th>Statut</th>
+                <th>Mode</th>
+                <th>Budget mensuel</th>
+                <th>Consommé ce mois</th>
+                <th>Reste</th>
+              </tr>
+            </thead>
+            <tbody id="billingProvidersTableBody">
+              <tr><td colspan="6" class="billing-empty">Aucun fournisseur API à afficher.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="glass-card settings-card billing-table-card">
+        <span class="section-tag">Traçabilité</span>
+        <h3>Événements récents de consommation</h3>
+        <div class="billing-table-wrapper">
+          <table class="billing-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Fournisseur</th>
+                <th>Fonction</th>
+                <th>Mode</th>
+                <th>Quantité</th>
+                <th>Coût estimé</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody id="billingUsageEventsTableBody">
+              <tr><td colspan="7" class="billing-empty">Aucun événement de consommation enregistré.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="glass-card settings-card">
+        <span class="section-tag">Transparence</span>
+        <h3>Information utilisateur recommandée</h3>
+        <ul class="billing-note-list">
+          <li>Afficher à l’utilisateur le nombre d’appels, les tokens ou la quantité enregistrée quand elle est disponible.</li>
+          <li>Afficher le coût estimé du mois et le rapprocher du budget mensuel du fournisseur quand il existe.</li>
+          <li>Prévoir ensuite une alerte claire quand le budget approche ou est dépassé.</li>
+          <li>Rappeler qu’en première version, certains coûts textuels peuvent être encore estimés de façon simplifiée selon le fournisseur.</li>
+        </ul>
+      </section>
+    </main>
+  </div>
+
+  <script src="/frontend/js/sidebar.js"></script>
+  <script src="/frontend/js/billing.js"></script>
+</body>
+</html>

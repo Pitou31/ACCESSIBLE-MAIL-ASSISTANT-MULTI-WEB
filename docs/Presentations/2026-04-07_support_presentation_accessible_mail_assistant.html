@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mail Care - Support de présentation</title>
+  <style>
+    :root {
+      --ink: #14211f;
+      --muted: #60736f;
+      --paper: #f5efe4;
+      --panel: rgba(255, 252, 244, 0.92);
+      --line: rgba(20, 33, 31, 0.16);
+      --forest: #183f38;
+      --teal: #0f766e;
+      --mint: #b9e6d3;
+      --amber: #e7a83b;
+      --coral: #c9634b;
+      --shadow: 0 24px 70px rgba(31, 52, 48, 0.2);
+      --radius-xl: 34px;
+      --radius-md: 20px;
+      --font-title: "Aptos Display", "Trebuchet MS", Verdana, sans-serif;
+      --font-body: "Atkinson Hyperlegible", "Source Sans 3", Verdana, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: var(--font-body);
+      background:
+        radial-gradient(circle at 10% 10%, rgba(185, 230, 211, 0.9), transparent 28rem),
+        radial-gradient(circle at 90% 12%, rgba(231, 168, 59, 0.45), transparent 24rem),
+        linear-gradient(135deg, #f8f1e3 0%, #eaf4ed 50%, #f3dfc8 100%);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(20, 33, 31, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(20, 33, 31, 0.035) 1px, transparent 1px);
+      background-size: 46px 46px;
+      mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.2));
+    }
+
+    .deck {
+      width: min(1280px, 100%);
+      margin: 0 auto;
+    }
+
+    .slide {
+      min-height: 100vh;
+      padding: clamp(32px, 5vw, 72px);
+      display: grid;
+      place-items: center;
+      scroll-snap-align: start;
+      position: relative;
+    }
+
+    .slide-card {
+      width: min(1120px, 100%);
+      min-height: min(760px, calc(100vh - 80px));
+      padding: clamp(32px, 5vw, 70px);
+      background: var(--panel);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(18px);
+    }
+
+    .slide-card::after {
+      content: "";
+      position: absolute;
+      right: -120px;
+      top: -120px;
+      width: 340px;
+      height: 340px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(15, 118, 110, 0.2), transparent 64%);
+      pointer-events: none;
+    }
+
+    .kicker {
+      display: inline-flex;
+      gap: 10px;
+      align-items: center;
+      padding: 9px 14px;
+      border-radius: 999px;
+      background: rgba(15, 118, 110, 0.12);
+      color: var(--forest);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: 0.78rem;
+    }
+
+    .kicker::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: var(--amber);
+    }
+
+    h1,
+    h2,
+    h3 {
+      font-family: var(--font-title);
+      line-height: 0.95;
+      margin: 0;
+      color: var(--forest);
+      letter-spacing: -0.04em;
+    }
+
+    h1 {
+      font-size: clamp(3.7rem, 8vw, 7.8rem);
+      max-width: 900px;
+      margin-top: 28px;
+    }
+
+    h2 {
+      font-size: clamp(2.7rem, 6vw, 5.5rem);
+      max-width: 980px;
+      margin-top: 22px;
+    }
+
+    h3 {
+      font-size: clamp(1.45rem, 2.8vw, 2.2rem);
+      line-height: 1.05;
+    }
+
+    p {
+      color: var(--muted);
+      font-size: clamp(1.04rem, 1.55vw, 1.32rem);
+      line-height: 1.55;
+      margin: 0;
+    }
+
+    .lead {
+      max-width: 800px;
+      margin-top: 28px;
+      font-size: clamp(1.28rem, 2.2vw, 1.8rem);
+      color: #2d4641;
+    }
+
+    .hero-layout,
+    .split {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: clamp(28px, 4vw, 64px);
+      align-items: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .panel {
+      padding: clamp(22px, 3vw, 36px);
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.62);
+      border: 1px solid var(--line);
+    }
+
+    .product-chip {
+      display: inline-flex;
+      padding: 12px 16px;
+      border-radius: 16px;
+      background: var(--forest);
+      color: #fff8ec;
+      font-weight: 800;
+      margin-top: 34px;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 40px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .feature,
+    .price-card,
+    .persona-card {
+      min-height: 160px;
+      padding: 24px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.64);
+      border: 1px solid var(--line);
+    }
+
+    .feature strong,
+    .price-card strong,
+    .persona-card strong {
+      display: block;
+      color: var(--forest);
+      font-size: 1.12rem;
+      margin-bottom: 12px;
+    }
+
+    .feature p,
+    .price-card p,
+    .persona-card p {
+      font-size: 1rem;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 16px;
+      margin-top: 38px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 54px 1fr;
+      gap: 18px;
+      align-items: start;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.6);
+    }
+
+    .step-number {
+      width: 54px;
+      height: 54px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      color: #fff8ec;
+      font-weight: 900;
+      background: var(--teal);
+    }
+
+    .quote {
+      margin-top: 34px;
+      padding: 28px;
+      border-left: 8px solid var(--amber);
+      background: rgba(231, 168, 59, 0.14);
+      border-radius: 0 24px 24px 0;
+      color: var(--forest);
+      font-size: clamp(1.25rem, 2vw, 1.85rem);
+      line-height: 1.38;
+      font-weight: 800;
+    }
+
+    .voice-command {
+      margin-top: 30px;
+      padding: 28px;
+      border-radius: 26px;
+      background: #14211f;
+      color: #fff8ec;
+      font-size: clamp(1.2rem, 2vw, 1.7rem);
+      line-height: 1.45;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+    }
+
+    .voice-command span {
+      color: var(--mint);
+      font-weight: 800;
+    }
+
+    .price-grid,
+    .persona-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
+      margin-top: 40px;
+    }
+
+    .price-card.highlight {
+      background: linear-gradient(145deg, var(--forest), #0f766e);
+      color: #fff8ec;
+    }
+
+    .price-card.highlight strong,
+    .price-card.highlight p {
+      color: #fff8ec;
+    }
+
+    .price {
+      display: block;
+      margin: 18px 0;
+      color: var(--coral);
+      font-family: var(--font-title);
+      font-size: clamp(2.6rem, 4vw, 4.2rem);
+      letter-spacing: -0.06em;
+      line-height: 0.9;
+    }
+
+    .highlight .price {
+      color: var(--mint);
+    }
+
+    .closing {
+      display: grid;
+      place-items: center;
+      text-align: center;
+      min-height: 620px;
+    }
+
+    .closing h2 {
+      margin-inline: auto;
+    }
+
+    .footer-note {
+      position: absolute;
+      left: clamp(32px, 5vw, 72px);
+      bottom: 26px;
+      font-size: 0.86rem;
+      color: rgba(20, 33, 31, 0.52);
+      font-weight: 700;
+    }
+
+    .slide-index {
+      position: absolute;
+      right: clamp(32px, 5vw, 72px);
+      bottom: 26px;
+      font-size: 0.86rem;
+      color: rgba(20, 33, 31, 0.52);
+      font-weight: 800;
+    }
+
+    .controls {
+      position: fixed;
+      right: 22px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: grid;
+      gap: 10px;
+      z-index: 10;
+    }
+
+    .controls a {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(20, 33, 31, 0.28);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      display: block;
+    }
+
+    .controls a:hover,
+    .controls a:focus {
+      background: var(--teal);
+      outline: 3px solid rgba(15, 118, 110, 0.18);
+    }
+
+    @media (max-width: 880px) {
+      .slide {
+        padding: 18px;
+      }
+
+      .slide-card {
+        min-height: auto;
+      }
+
+      .hero-layout,
+      .split,
+      .feature-grid,
+      .price-grid,
+      .persona-grid {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: clamp(3rem, 15vw, 5.2rem);
+      }
+
+      .controls {
+        display: none;
+      }
+    }
+
+    @media print {
+      html {
+        scroll-snap-type: none;
+      }
+
+      body {
+        background: white;
+      }
+
+      body::before,
+      .controls {
+        display: none;
+      }
+
+      .slide {
+        min-height: auto;
+        padding: 0;
+        break-after: page;
+      }
+
+      .slide-card {
+        min-height: 100vh;
+        border-radius: 0;
+        box-shadow: none;
+        border: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="controls" aria-label="Navigation des diapositives">
+    <a href="#s01" aria-label="Diapositive 1"></a>
+    <a href="#s02" aria-label="Diapositive 2"></a>
+    <a href="#s03" aria-label="Diapositive 3"></a>
+    <a href="#s04" aria-label="Diapositive 4"></a>
+    <a href="#s05" aria-label="Diapositive 5"></a>
+    <a href="#s06" aria-label="Diapositive 6"></a>
+    <a href="#s07" aria-label="Diapositive 7"></a>
+    <a href="#s08" aria-label="Diapositive 8"></a>
+    <a href="#s09" aria-label="Diapositive 9"></a>
+    <a href="#s10" aria-label="Diapositive 10"></a>
+    <a href="#s11" aria-label="Diapositive 11"></a>
+    <a href="#s12" aria-label="Diapositive 12"></a>
+    <a href="#s13" aria-label="Diapositive 13"></a>
+  </nav>
+
+  <main class="deck">
+    <section class="slide" id="s01">
+      <div class="slide-card hero-layout">
+        <div>
+          <span class="kicker">Assistant mail accessible</span>
+          <h1>Mail Care</h1>
+          <p class="lead">L'application qui prend soin de vos mails : lire, comprendre, dicter, corriger et envoyer devient plus simple, avec un assistant qui s'adapte aux capacités de l'utilisateur.</p>
+          <span class="product-chip">IA + voix + accessibilité + contrôle humain</span>
+        </div>
+        <div class="panel">
+          <h3>Promesse</h3>
+          <p>L'application qui prend soin de vos mails, en les rendant plus accessibles, plus simples à comprendre et plus faciles à rédiger grâce à l'intelligence artificielle, à la dictée vocale et à une interface adaptée.</p>
+        </div>
+        <span class="footer-note">Présentation produit</span>
+        <span class="slide-index">01 / 13</span>
+      </div>
+    </section>
+
+    <section class="slide" id="s02">
+      <div class="slide-card">
+        <span class="kicker">Le problème</span>
+        <h2>La messagerie est indispensable, mais pas toujours accessible.</h2>
+        <div class="feature-grid">
+          <div class="feature"><strong>Lecture dense</strong><p>Les messages longs et les interfaces chargées augmentent la fatigue.</p></div>
+          <div class="feature"><strong>Saisie difficile</strong><p>Clavier, souris, sélection et précision peuvent devenir des obstacles.</p></div>
+          <div class="feature"><strong>Stress avant envoi</strong><p>La formulation, l'erreur possible et la relecture demandent un effort important.</p></div>
+        </div>
+        <p class="lead">Pour certaines personnes, ces obstacles réduisent l'autonomie numérique au quotidien.</p>
+        <span class="footer-note">Constat utilisateur</span>
+        <span class="slide-index">02 / 13</span>
+      </div>
+    </section>
+
+    <section class="slide" id="s03">
+      <div class="slide-card split">
+        <div>
+          <span class="kicker">La solution</span>
+          <h2>Un assistant qui accompagne sans faire à la place.</h2>
+          <p class="lead">L'application aide à préparer, comprendre, rédiger et corriger, mais l'utilisateur garde la décision finale.</p>
+        </div>
+        <div class="timeline">
+          <div class="step"><div class="step-number">1</div><p>Se connecter et ouvrir la page mail.</p></div>
+          <div class="step"><div class="step-number">2</div><p>Choisir un message ou créer un nouveau mail.</p></div>
+          <div class="step"><div class="step-number">3</div><p>Classer, prioriser, demander une aide IA, dicter ou corriger.</p></div>
+          <div class="step"><div class="step-number">4</div><p>Valider, rejeter, modifier ou supprimer avant envoi.</p></div>
+        </div>
+        <span class="footer-note">Parcours pédagogique</span>
+        <span class="slide-index">03 / 13</span>
+      </div>
+    </section>
+
+    <section class="slide" id="s04">
+      <div class="slide-card">
+        <span class="kicker">Fonctions principales</span>
+        <h2>Comprendre, classer, rédiger, corriger.</h2>
+        <div class="feature-grid">
+          <div class="feature"><strong>Analyse d'un mail</strong><p>Identifier le sujet, les informations utiles, ce qui manque et la réponse possible.</p></div>
+          <div class="feature"><strong>Classement des mails</strong><p>Repérer l'urgence, les demandes d'action, les messages à valider et les priorités de lecture.</p></div>
+          <div class="feature"><strong>Rédaction assistée</strong><p>Créer un brouillon de réponse ou un nouveau mail à partir d'une intention.</p></div>
+          <div class="feature"><strong>Dictée vocale</strong><p>Insérer, remplacer ou ajouter du texte sans utiliser le clavier, quand la parole est possible.</p></div>
+          <div class="feature"><strong>Édition vocale IA</strong><p>Exprimer directement une action de correction ou d'ajout, avec un mode non vocal à prévoir en parallèle.</p></div>
+          <div class="feature"><strong>Accessibilité</strong><p>Adapter taille, lecture progressive, audio, boutons et confort visuel.</p></div>
+        </div>
+        <span class="footer-note">Vue fonctionnelle</span>
+        <span class="slide-index">04 / 13</span>
+      </div>
+    </section>
+
+    <section class="slide" id="s05">
+      <div class="slide-card split">
+        <div>
+          <span class="kicker">Innovation d'usage</span>
+          <h2>L'édition entièrement vocale.</h2>
+          <p class="lead">L'utilisateur peut demander une modification sans sélectionner manuellement le texte, sans déplacer précisément le curseur et sans utiliser la souris.</p>
+        </div>
+        <div>
+          <div class="voice-command">Commande :<br><span>« Dans Bonjour Madame, ajoute Mademoiselle virgule devant Madame. »</span></div>
+          <div class="voice-command">Commande :<br><span>« Positionne-toi en fin de page et ajoute le mot cordialement. »</span></div>
+        </div>
+        <span class="footer-note">Édition vocale assistée</span>
+        <span class="slide-index">05 / 13</span>
+      </div>
+    </section>
+
+    <section class="slide" id="s06">
+      <div class="slide-card">
+        <span class="kicker">Sans parole</span>
+        <h2>L'accessibilité ne doit pas dépendre uniquement de la voix.</h2>
+        <div class="feature-grid">
+          <div class="feature"><strong>Saisie adaptée</strong><p>Clavier classique, clavier virtuel, contacteur ou autre dispositif compatible avec la navigation web.</p></div>
+          <div class="feature"><strong>Guidage progressif</strong><p>Lecture progressive, boutons agrandis, confirmations renforcées et choix dans des listes.</p></div>
+          <div class="feature"><strong>Communication alternative</strong><p>Possibilité de préparer des consignes courtes ou de copier-coller depuis un outil d'aide à la communication.</p></div>
+        </div>
+        <div class="quote">La voix est un accélérateur d'accessibilité, mais elle ne doit pas être le seul mode d'accès.</div>
+        <span class="footer-note">Personnes privées de la parole</span>
+        <span class="slide-index">06 / 13</span>
+      </div>
+    </section>
+
+    <section class="slide" id="s07">
+      <div class="slide-card">
+        <span class="kicker">Publics prioritaires</span>
+        <h2>Conçu pour réduire les obstacles d'usage.</h2>
+        <div class="persona-grid">
+          <div class="persona-card"><strong>Personnes en situation de handicap</strong><p>Moins de dépendance au clavier, à la souris ou à la voix seule, plus d'autonomie dans les actions mail simples.</p></div>
+          <div class="persona-card"><strong>Personnes âgées</strong><p>Lecture plus confortable, aide à la compréhension, dictée et meilleure confiance avant envoi.</p></div>
+          <div class="persona-card"><strong>Aidants et associations</strong><p>Un outil d'accompagnement concret pour aider sans faire systématiquement à la place.</p></div>
+        </div>
+        <div class="quote">Le but n'est pas de remplacer la personne, mais de lui redonner du contrôle et de l'autonomie.</div>
+        <span class="footer-note">Accessibilité et autonomie</span>
+        <span class="slide-index">07 / 13</span>
+      </div>
+    </section>
+
+    <section class="slide" id="s08">
+      <div class="slide-card split">
+        <div>
+          <span class="kicker">Pour les organisations</span>
+          <h2>Un levier d'inclusion numérique et professionnelle.</h2>
+          <p class="lead">L'application peut accompagner l'aménagement de poste, le maintien dans l'emploi et l'accès plus autonome à la communication écrite.</p>
+        </div>
+        <div class="panel">
+          <h3>Usages possibles</h3>
+          <p>Entreprises, associations, collectivités, services d'accompagnement, structures médico-sociales et partenaires de l'accessibilité numérique.</p>
+        </div>
+        <span class="footer-note">Usage professionnel</span>
+        <span class="slide-index">08 / 13</span>
+      </div>
+    </section>
+
+    <section class="slide" id="s09">
+      <div class="slide-card">
+        <span class="kicker">Différenciation</span>
+        <h2>Plus qu'un outil de productivité : une solution d'accessibilité.</h2>
+        <div class="feature-grid">
+          <div class="feature"><strong>Voix, IA et modes alternatifs</strong><p>Dictée, commandes d'édition vocales et parcours non vocal pour ne pas limiter l'accès à la parole.</p></div>
+          <div class="feature"><strong>Classement intelligent</strong><p>Prioriser les mails, distinguer les demandes d'action et appliquer des règles de traitement.</p></div>
+          <div class="feature"><strong>Réglages adaptés</strong><p>Lecture progressive, confort visuel, boutons, confirmations et audio.</p></div>
+          <div class="feature"><strong>Choix technique</strong><p>Possibilité d'IA locale ou d'API selon contexte, ressources et confidentialité.</p></div>
+          <div class="feature"><strong>Contrôle humain</strong><p>Valider, rejeter, modifier ou supprimer avant envoi.</p></div>
+          <div class="feature"><strong>RGPD par conception</strong><p>Limiter la conservation et rendre les données exportables.</p></div>
+        </div>
+        <span class="footer-note">Positionnement produit</span>
+        <span class="slide-index">09 / 13</span>
+      </div>
+    </section>
+
+    <section class="slide" id="s10">
+      <div class="slide-card split">
+        <div>
+          <span class="kicker">Données et confiance</span>
+          <h2>Les mails restent dans les boîtes mail.</h2>
+          <p class="lead">L'application n'a pas vocation à devenir une archive complète de messages. Elle conserve uniquement les données nécessaires au fonctionnement.</p>
+        </div>
+        <div class="panel">
+          <h3>Principes</h3>
+          <p>Pas de conservation durable des mails complets par défaut. Pas de conservation durable de l'audio brut. Export RGPD du compte connecté. Choix local ou API à expliciter.</p>
+        </div>
+        <span class="footer-note">Confidentialité</span>
+        <span class="slide-index">10 / 13</span>
+      </div>
+    </section>
+
+    <section class="slide" id="s11">
+      <div class="slide-card">
+        <span class="kicker">Modèle de service</span>
+        <h2>Une tarification alignée avec la vocation sociale du produit.</h2>
+        <div class="price-grid">
+          <div class="price-card highlight">
+            <strong>Handicap justifié</strong>
+            <span class="price">Gratuit</span>
+            <p>Accès gratuit pour les personnes justifiant d'une situation de handicap.</p>
+          </div>
+          <div class="price-card highlight">
+            <strong>Plus de 75 ans</strong>
+            <span class="price">Gratuit</span>
+            <p>Accès gratuit pour les personnes âgées de plus de 75 ans.</p>
+          </div>
+          <div class="price-card">
+            <strong>Individuel standard</strong>
+            <span class="price">20 €</span>
+            <p>Abonnement mensuel pour les autres utilisateurs individuels.</p>
+          </div>
+        </div>
+        <p class="lead">Entreprises, associations et collectivités : contrat spécifique selon le nombre d'utilisateurs, l'hébergement, le support et les besoins d'intégration.</p>
+        <span class="footer-note">Facturation</span>
+        <span class="slide-index">11 / 13</span>
+      </div>
+    </section>
+
+    <section class="slide" id="s12">
+      <div class="slide-card split">
+        <div>
+          <span class="kicker">Messages clés</span>
+          <h2>Des formulations prêtes à réutiliser.</h2>
+        </div>
+        <div class="timeline">
+          <div class="step"><div class="step-number">A</div><p>Mail Care rend l'e-mail plus simple, plus vocal et plus accessible grâce à l'IA.</p></div>
+          <div class="step"><div class="step-number">B</div><p>L'application qui prend soin de vos mails et favorise l'autonomie numérique.</p></div>
+          <div class="step"><div class="step-number">C</div><p>Un outil d'inclusion numérique pour accompagner sans faire à la place.</p></div>
+        </div>
+        <span class="footer-note">Arguments courts</span>
+        <span class="slide-index">12 / 13</span>
+      </div>
+    </section>
+
+    <section class="slide" id="s13">
+      <div class="slide-card closing">
+        <div>
+          <span class="kicker">Conclusion</span>
+          <h2>Rendre la messagerie plus inclusive, plus simple et plus autonome.</h2>
+          <p class="lead">Mail Care réunit une valeur fonctionnelle et une valeur sociale : aider à lire, rédiger, dicter, corriger et valider, tout en réduisant les obstacles pour les personnes qui en ont le plus besoin.</p>
+          <div class="quote">L'IA accompagne. La personne décide.</div>
+        </div>
+        <span class="footer-note">Mail Care</span>
+        <span class="slide-index">13 / 13</span>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

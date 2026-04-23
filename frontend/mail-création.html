@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestion des mails</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/frontend/css/styles.css" />
+</head>
+<body data-theme="midnight">
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-top">
+        <button
+          class="sidebar-toggle"
+          id="sidebarToggle"
+          aria-label="Ouvrir ou fermer le menu"
+          type="button"
+        >
+          ☰
+        </button>
+
+        <div class="brand">
+          <div class="brand-logo">GM</div>
+          <div class="brand-text">
+            <strong>Gestion Mail</strong>
+            <small>Assistant accessible</small>
+          </div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-item active" type="button">
+          <span class="nav-icon">✉️</span>
+          <span class="nav-label">Mails</span>
+        </button>
+
+        <button class="nav-item" type="button">
+          <span class="nav-icon">⚙️</span>
+          <span class="nav-label">Paramètres</span>
+        </button>
+
+        <button class="nav-item" type="button">
+          <span class="nav-icon">🧩</span>
+          <span class="nav-label">Règles</span>
+        </button>
+
+        <button class="nav-item" type="button">
+          <span class="nav-icon">📊</span>
+          <span class="nav-label">Statistiques</span>
+        </button>
+
+        <button class="nav-item" type="button">
+          <span class="nav-icon">🕘</span>
+          <span class="nav-label">Versions</span>
+        </button>
+
+        <button class="nav-item" type="button">
+          <span class="nav-icon">💾</span>
+          <span class="nav-label">Sauvegardes</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="theme-card">
+          <label for="themeSelect">Thème</label>
+          <select id="themeSelect">
+            <option value="blue-violet">Bleu → Violet</option>
+            <option value="emerald-blue">Émeraude → Bleu</option>
+            <option value="sunset">Cuivre → Bordeaux</option>
+            <option value="midnight">Anthracite profond</option>
+          </select>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="hero-header glass-card">
+        <div class="hero-header-text">
+          <p class="eyebrow">Traitement</p>
+          <h1>Gestion des mails</h1>
+          <p class="subtitle">Création assistée par intelligence artificielle</p>
+        </div>
+      </header>
+
+      <section class="mail-toolbar glass-card">
+        <div class="mail-toolbar-left">
+          <div class="mail-mode-group">
+            <span class="toolbar-label">Choix du traitement</span>
+            <div class="mode-buttons">
+              <button
+                class="mode-button active"
+                id="createModeBtn"
+                data-mode="creation"
+                type="button"
+              >
+                Création de mail
+              </button>
+
+              <button
+                class="mode-button"
+                id="replyModeBtn"
+                data-mode="reply"
+                type="button"
+                aria-disabled="true"
+                title="Le mode Réponse sera traité dans une étape suivante."
+              >
+                Réponse
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="mail-toolbar-right">
+          <label class="toolbar-label" for="llmSelect">LLM utilisé</label>
+          <select id="llmSelect" class="llm-select">
+            <option value="mistral-api">Mistral API</option>
+            <option value="deepseek-chat" selected>DeepSeek chat</option>
+            <option value="deepseek-reasoner">DeepSeek reasoner</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="glass-card mail-workspace-board">
+        <div class="mail-columns">
+          <!-- BLOC 1 : CREATION -->
+          <div class="mail-column left-column">
+            <div class="mail-column-title">
+              <h2>Création de mail</h2>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-field">
+                <label for="mailTo">Mail du destinataire</label>
+                <input
+                  id="mailTo"
+                  type="email"
+                  class="mail-input"
+                  placeholder="destinataire@example.com"
+                  autocomplete="off"
+                />
+              </div>
+
+              <div class="form-field">
+                <label for="mailDate">Date du jour</label>
+                <input
+                  id="mailDate"
+                  type="text"
+                  class="mail-input"
+                  readonly
+                />
+              </div>
+
+              <div class="form-field">
+                <label for="mailCc">Copies (CC)</label>
+                <input
+                  id="mailCc"
+                  type="text"
+                  class="mail-input"
+                  placeholder="cc1@example.com, cc2@example.com"
+                  autocomplete="off"
+                />
+              </div>
+
+              <div class="form-field">
+                <label for="mailBcc">Copies cachées (BCC)</label>
+                <input
+                  id="mailBcc"
+                  type="text"
+                  class="mail-input"
+                  placeholder="bcc@example.com"
+                  autocomplete="off"
+                />
+              </div>
+
+              <div class="form-field form-field-full">
+                <label for="mailSubject">Objet</label>
+                <input
+                  id="mailSubject"
+                  type="text"
+                  class="mail-input"
+                  placeholder="Objet du mail"
+                  autocomplete="off"
+                />
+              </div>
+            </div>
+
+            <div class="mail-editor-block">
+              <label for="creationPrompt" class="editor-label">Prompt guidé</label>
+              <textarea
+                id="creationPrompt"
+                class="mail-textarea input-textarea"
+                placeholder="Tu es un spécialiste de la rédaction de mails. Rédige un mail clair, professionnel et accessible. Objectif : ..."
+              ></textarea>
+            </div>
+
+            <div class="attachments-block">
+              <label for="creationAttachments" class="editor-label">Pièces jointes (facultatif)</label>
+              <input
+                id="creationAttachments"
+                type="file"
+                class="file-input"
+                multiple
+              />
+            </div>
+          </div>
+
+          <!-- BLOC 2 : CONTENU DU MAIL -->
+          <div class="mail-column right-column">
+            <div class="mail-column-title">
+              <h2>Contenu du mail</h2>
+            </div>
+
+            <div class="mail-editor-block">
+              <label for="outputMailContent" class="editor-label">Contenu éditable</label>
+              <textarea
+                id="outputMailContent"
+                class="mail-textarea output-textarea"
+                placeholder="Le contenu du mail généré apparaîtra ici, avec possibilité de modification."
+              ></textarea>
+            </div>
+
+            <div class="attachments-block">
+              <label for="outputAttachments" class="editor-label">Pièces jointes (facultatif)</label>
+              <input
+                id="outputAttachments"
+                type="file"
+                class="file-input"
+                multiple
+              />
+            </div>
+
+            <div class="mail-actions">
+              <button class="action-button send-button" id="sendBtn" type="button">
+                Valider l’envoi
+                <span class="action-counter" id="sendCount">0</span>
+              </button>
+
+              <button class="action-button reject-button" id="rejectBtn" type="button">
+                Rejet
+                <span class="action-counter" id="rejectCount">0</span>
+              </button>
+
+              <button class="action-button delete-button" id="deleteBtn" type="button">
+                Suppression
+                <span class="action-counter" id="deleteCount">0</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/frontend/js/mail.js"></script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Demande de compte administrateur</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Inter:wght@400;500;600;700;800&family=Lexend:wght@400;500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/frontend/css/styles.css" />
+</head>
+<body data-theme="midnight">
+  <div class="app-shell">
+    <main class="main-content">
+      <header class="hero-header glass-card">
+        <div class="hero-header-text">
+          <p class="eyebrow">Administration</p>
+          <h1>Demande de compte administrateur</h1>
+          <p class="subtitle">Cette page permet à un futur administrateur de déposer une demande. Le compte ne sera actif qu'après validation par le super administrateur.</p>
+        </div>
+      </header>
+
+      <section class="settings-grid">
+        <article class="glass-card settings-card">
+          <span class="section-tag">Demande</span>
+          <h3>Créer une demande administrateur</h3>
+
+          <div class="settings-form-grid">
+            <div class="settings-field">
+              <label for="secondaryAdminFirstName">Prénom</label>
+              <input id="secondaryAdminFirstName" class="settings-select" type="text" placeholder="Prénom" />
+            </div>
+
+            <div class="settings-field">
+              <label for="secondaryAdminLastName">Nom</label>
+              <input id="secondaryAdminLastName" class="settings-select" type="text" placeholder="Nom" />
+            </div>
+
+            <div class="settings-field">
+              <label for="secondaryAdminEmail">Email</label>
+              <input id="secondaryAdminEmail" class="settings-select" type="email" placeholder="nom@exemple.fr" />
+            </div>
+
+            <div class="settings-field">
+              <label for="secondaryAdminPhone">Téléphone</label>
+              <input id="secondaryAdminPhone" class="settings-select" type="tel" placeholder="Téléphone" />
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label for="secondaryAdminOrganizationName">Organisation gérée</label>
+              <input id="secondaryAdminOrganizationName" class="settings-select" type="text" placeholder="Nom exact de l'organisation gérée" />
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label for="secondaryAdminPassword">Mot de passe souhaité</label>
+              <input id="secondaryAdminPassword" class="settings-select" type="password" placeholder="Au moins 10 caractères" />
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label for="secondaryAdminMotivation">Motif de la demande</label>
+              <textarea id="secondaryAdminMotivation" class="mail-textarea" rows="4" placeholder="Précisez brièvement le contexte de gestion de cette organisation."></textarea>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label class="checkbox-field">
+                <input id="secondaryAdminConsent" type="checkbox" />
+                <span>J'accepte que cette demande soit transmise au super administrateur pour validation.</span>
+              </label>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label class="checkbox-field">
+                <input id="secondaryAdminHumanConfirmation" type="checkbox" />
+                <span>Je confirme être un humain</span>
+              </label>
+              <input id="secondaryAdminTurnstileToken" type="hidden" value="" />
+            </div>
+
+            <div class="settings-field settings-field-full" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
+              <label for="secondaryAdminWebsite">Ne pas remplir ce champ</label>
+              <input id="secondaryAdminWebsite" class="settings-select" type="text" tabindex="-1" autocomplete="off" />
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <p class="settings-help">Toute demande de compte administrateur est envoyée au super administrateur pour validation.</p>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <div class="mail-actions">
+                <button class="action-button send-button" id="createSecondaryAdminButton" type="button">Envoyer la demande administrateur</button>
+              </div>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <p class="settings-help form-feedback is-info" id="adminDbFeedback">La demande n'est pas encore envoyée.</p>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="/frontend/js/shared/identity-formatting.js"></script>
+  <script src="/frontend/js/shared/human-verification.js"></script>
+  <script src="/frontend/js/admin-db.js"></script>
+</body>
+</html>

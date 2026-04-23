@@ -1,0 +1,9 @@
+{
+  "type": "draft_payload",
+  "version": "1.0.0",
+  "mailId": "string",
+  "subject": "string",
+  "body": "string",
+  "tone": "professional",
+  "confidence": 0
+}

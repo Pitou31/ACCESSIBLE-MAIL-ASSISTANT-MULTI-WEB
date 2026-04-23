@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Demande d'ouverture de compte</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Inter:wght@400;500;600;700;800&family=Lexend:wght@400;500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/frontend/css/styles.css" />
+</head>
+<body data-theme="midnight">
+  <div class="app-shell">
+    <!-- SIDEBAR -->
+
+    <main class="main-content">
+      <header class="hero-header glass-card">
+        <div class="hero-header-text">
+          <p class="eyebrow">Compte</p>
+          <h1>Demande d’ouverture de compte</h1>
+          <p class="subtitle">Présentez votre demande d’accès à l’application. Cette demande sera ensuite examinée par l’administrateur.</p>
+        </div>
+      </header>
+
+      <section class="settings-toolbar glass-card">
+        <div>
+          <span class="section-tag">Parcours</span>
+          <h3>Créer une demande</h3>
+          <p class="section-note">Un compte n’est ouvert qu’une seule fois puis reste attaché à son utilisateur. Cette page sert donc à déposer la demande initiale d’ouverture.</p>
+        </div>
+
+        <div class="mail-actions">
+          <a class="action-button" href="/frontend/account.html">Retour à la page Compte</a>
+        </div>
+      </section>
+
+      <section class="settings-grid">
+        <article class="glass-card settings-card">
+          <span class="section-tag">Formulaire</span>
+          <h3>Demandeur et contexte d’usage</h3>
+
+          <div class="settings-form-grid">
+            <div class="settings-field">
+              <label for="accountType">Type de compte</label>
+              <select id="accountType" class="settings-select">
+                <option value="individuel">Individuel</option>
+                <option value="entreprise">Entreprise</option>
+                <option value="collectivite">Collectivité</option>
+                <option value="association">Association</option>
+              </select>
+            </div>
+
+            <div class="settings-field">
+              <label for="usageMode">Mode d’usage</label>
+              <select id="usageMode" class="settings-select">
+                <option value="gratuit">Gratuit</option>
+                <option value="payant">Payant</option>
+              </select>
+            </div>
+
+            <div class="settings-field">
+              <label for="firstName">Prénom</label>
+              <input id="firstName" class="settings-select" type="text" placeholder="Prénom" />
+            </div>
+
+            <div class="settings-field">
+              <label for="lastName">Nom</label>
+              <input id="lastName" class="settings-select" type="text" placeholder="Nom" />
+            </div>
+
+            <div class="settings-field">
+              <label for="emailAddress">Email de contact</label>
+              <input id="emailAddress" class="settings-select" type="email" placeholder="nom@exemple.fr" />
+            </div>
+
+            <div class="settings-field">
+              <label for="phoneNumber">Téléphone</label>
+              <input id="phoneNumber" class="settings-select" type="tel" placeholder="Téléphone" />
+            </div>
+
+            <div class="settings-field">
+              <label for="requestPassword">Mot de passe</label>
+              <input id="requestPassword" class="settings-select" type="password" placeholder="Au moins 10 caractères" autocomplete="new-password" />
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label for="organizationName">Organisation</label>
+              <input id="organizationName" class="settings-select" type="text" placeholder="Entreprise, collectivité ou association si concerné" autocomplete="off" />
+              <p class="settings-help" id="organizationLookupFeedback">Pour les comptes non individuels, l'organisation doit correspondre à un administrateur déjà enregistré.</p>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label for="attachmentAdminDisplay">Administrateur de rattachement</label>
+              <input id="attachmentAdminDisplay" class="settings-select" type="text" value="Vous-même (compte individuel)" readonly />
+              <p class="settings-help">Cette information est gérée en interne. Seul le bon circuit de validation est utilisé.</p>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label class="settings-toggle">
+                <input id="disabilityUsage" type="checkbox" />
+                <span>Mention d’usage : Handicapé</span>
+              </label>
+              <p class="settings-help">Si cette mention est cochée, un justificatif pourra être demandé ou contrôlé lors de la validation.</p>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label for="mailboxesPlanned">Boîtes mail prévues</label>
+              <textarea id="mailboxesPlanned" class="mail-textarea" rows="4" placeholder="Une ou plusieurs adresses mail que vous souhaitez raccorder ensuite"></textarea>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label for="motivationText">Contexte d’usage</label>
+              <textarea id="motivationText" class="mail-textarea" rows="5" placeholder="Décrire le contexte, les besoins d’accessibilité, l’usage attendu et toute précision utile"></textarea>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label for="supportingDocument">Pièce justificative</label>
+              <input id="supportingDocument" class="settings-select" type="file" />
+              <p class="settings-help">Justificatif attendu pour les comptes non individuels et, si nécessaire, pour certaines demandes liées au handicap.</p>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label class="settings-toggle">
+                <input id="dataConsent" type="checkbox" />
+                <span>J’accepte l’examen de ma demande d’ouverture de compte</span>
+              </label>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label class="settings-toggle">
+                <input id="humanConfirmation" type="checkbox" />
+                <span>Je confirme être un humain</span>
+              </label>
+            </div>
+
+            <div class="settings-field settings-field-full" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
+              <label for="humanWebsite">Ne pas remplir ce champ</label>
+              <input id="humanWebsite" class="settings-select" type="text" tabindex="-1" autocomplete="off" />
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <button class="action-button send-button" id="submitAccountRequestButton" type="button">Déposer la demande</button>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <p class="settings-help form-feedback is-info" id="accountRequestFeedback">Le formulaire attend votre saisie.</p>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <div class="account-summary-card" id="requestSubmissionCard">
+                <p class="settings-help">Aucune demande déposée pendant cette session.</p>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="glass-card settings-card">
+          <span class="section-tag">Informations</span>
+          <h3>Ce qu’il se passe ensuite</h3>
+
+          <ul class="feature-list">
+            <li>La demande est enregistrée dans le système.</li>
+            <li>La demande est envoyée à l’administrateur compétent.</li>
+            <li>L’administrateur examine la demande et ses justificatifs éventuels.</li>
+            <li>La suite du parcours dépendra ensuite de la décision d’acceptation, de refus ou de demande de complément.</li>
+          </ul>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="/frontend/js/sidebar.js"></script>
+  <script src="/frontend/js/shared/identity-formatting.js"></script>
+  <script src="/frontend/js/shared/human-verification.js"></script>
+  <script src="/frontend/js/account.js"></script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "type": "mail_context",
+  "version": "1.0.0",
+  "mailId": "string",
+  "subject": "string",
+  "from": {
+    "name": "string",
+    "email": "string"
+  },
+  "body": {
+    "text": "string",
+    "html": "string"
+  },
+  "attachments": [],
+  "links": [],
+  "createdAt": "ISO_DATE"
+}

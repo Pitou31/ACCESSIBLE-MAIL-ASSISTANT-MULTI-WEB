@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Création de règles</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/frontend/css/styles.css" />
+</head>
+<body data-theme="midnight">
+  <div class="app-shell">
+    <!-- SIDEBAR -->
+
+    <main class="main-content">
+      <header class="hero-header glass-card">
+        <div class="hero-header-text">
+          <p class="eyebrow">Administration</p>
+          <h1>Création de règles</h1>
+          <p class="subtitle">Atelier assisté pour transformer une ou plusieurs demandes en règle métier, compléter les paramètres manquants, puis l’enregistrer dans le référentiel.</p>
+        </div>
+      </header>
+
+      <section class="content-grid">
+        <article class="glass-card content-card content-card-wide">
+          <span class="section-tag">Processus</span>
+          <h3>Déroulement</h3>
+          <p id="ruleCreationAccessSummary" class="settings-help">Vérification des droits administrateur...</p>
+          <ul class="feature-list">
+            <li>Étape 1 : générer une règle candidate à partir des demandes reçues.</li>
+            <li>Étape 2 : laisser l’IA demander les précisions minimales à l’administrateur.</li>
+            <li>Étape 3 : finaliser la règle et l’enregistrer dans le référentiel métier.</li>
+            <li>La règle finale doit viser une réponse one shot ou une demande de complément très ciblée.</li>
+          </ul>
+          <div class="form-actions">
+            <a class="action-button secondary-button" href="/frontend/rules.html">Retour au référentiel</a>
+          </div>
+        </article>
+
+        <article class="glass-card content-card">
+          <span class="section-tag">Paramètres</span>
+          <h3>Génération IA</h3>
+          <label class="settings-field">
+            <span>Mode de création</span>
+            <select id="ruleBuilderModeInput" class="settings-select">
+              <option value="auto">Génération automatique</option>
+              <option value="manual">Import manuel d'un brouillon externe</option>
+            </select>
+          </label>
+          <label class="settings-field">
+            <span>Modèle de travail</span>
+            <select id="ruleBuilderModelInput" class="settings-select">
+              <option value="deepseek-chat">DeepSeek Chat</option>
+              <option value="deepseek-reasoner">DeepSeek Reasoner</option>
+              <option value="mistral-api">Mistral API</option>
+            </select>
+          </label>
+          <label class="settings-field">
+            <span>Commentaire opérateur</span>
+            <textarea id="ruleBuilderOperatorCommentInput" class="settings-textarea" rows="4">réponse insuffisante</textarea>
+          </label>
+          <p id="ruleBuilderModeHelp" class="settings-help">Le commentaire opérateur est injecté dans le prompt pour cadrer la création de la règle.</p>
+        </article>
+      </section>
+
+      <section class="content-grid">
+        <article class="glass-card content-card content-card-wide">
+          <span class="section-tag">Prompts</span>
+          <h3>Bibliothèque de prompts</h3>
+          <p class="settings-help">Ces prompts servent si tu veux faire travailler un LLM externe, puis réinjecter manuellement son résultat dans ce processus.</p>
+          <label class="settings-field">
+            <span>Prompt externe pour créer une règle</span>
+            <textarea id="rulePromptCreateText" class="settings-textarea rule-builder-textarea-xl" rows="16" readonly></textarea>
+          </label>
+          <div class="form-actions">
+            <button id="copyRulePromptCreateBtn" class="action-button secondary-button" type="button">Copier le prompt de création</button>
+          </div>
+          <label class="settings-field">
+            <span>Prompt externe pour finaliser une règle</span>
+            <textarea id="rulePromptFinalizeText" class="settings-textarea rule-builder-textarea-xl" rows="16" readonly></textarea>
+          </label>
+          <div class="form-actions">
+            <button id="copyRulePromptFinalizeBtn" class="action-button secondary-button" type="button">Copier le prompt de finalisation</button>
+          </div>
+          <label class="settings-field">
+            <span>Prompt externe pour tester l'application d'une règle</span>
+            <textarea id="rulePromptCheckText" class="settings-textarea rule-builder-textarea-xl" rows="16" readonly></textarea>
+          </label>
+          <div class="form-actions">
+            <button id="copyRulePromptCheckBtn" class="action-button secondary-button" type="button">Copier le prompt de contrôle</button>
+            <button id="copyRuleBuilderCheckContextBtn" class="action-button secondary-button" type="button">Copier le contexte de contrôle</button>
+          </div>
+          <p id="rulePromptFeedback" class="settings-help">Les prompts sont fournis en lecture seule pour servir de référence et de copie rapide.</p>
+        </article>
+
+        <article class="glass-card content-card">
+          <span class="section-tag">Usage</span>
+          <h3>Quand utiliser quoi</h3>
+          <ul class="feature-list">
+            <li>`Créer une règle` : partir d'une ou plusieurs demandes et produire un brouillon structuré.</li>
+            <li>`Finaliser une règle` : reprendre le brouillon avec les réponses admin pour produire la version stockable.</li>
+            <li>`Tester une règle` : vérifier qu'une réponse mail a bien appliqué la logique attendue.</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="content-grid">
+        <article class="glass-card content-card content-card-wide">
+          <span class="section-tag">Étape 1</span>
+          <h3>Demandes source</h3>
+          <form id="ruleBuilderDraftForm" class="settings-form">
+            <label class="settings-field">
+              <span>Demandes à analyser</span>
+              <textarea id="ruleBuilderRequestsInput" class="settings-textarea rule-builder-textarea-lg" rows="14" placeholder="Colle ici une ou plusieurs demandes."></textarea>
+            </label>
+            <div class="form-actions">
+              <button id="ruleBuilderGenerateBtn" class="action-button" type="submit">Générer la règle candidate</button>
+              <button id="copyRuleBuilderContextBtn" class="action-button secondary-button" type="button">Copier le contexte pour LLM externe</button>
+            </div>
+            <p id="ruleBuilderDraftFeedback" class="settings-help">Colle une ou plusieurs demandes réelles pour lancer la génération.</p>
+          </form>
+          <div id="ruleBuilderManualPanel" class="rule-builder-manual-panel" hidden>
+          <label class="settings-field">
+            <span>Brouillon externe collé manuellement</span>
+            <textarea id="ruleBuilderManualDraftInput" class="settings-textarea rule-builder-textarea-lg" rows="14" placeholder="Colle ici soit un JSON structuré, soit un texte libre venant d'un LLM externe."></textarea>
+          </label>
+          <div class="form-actions">
+            <button id="ruleBuilderImportBtn" class="action-button" type="button">Importer le brouillon externe</button>
+            <button id="copyRuleBuilderFinalizeContextBtn" class="action-button secondary-button" type="button">Copier le contexte de finalisation</button>
+          </div>
+          <p id="ruleBuilderManualFeedback" class="settings-help">Tu peux utiliser ici une sortie ChatGPT, Claude ou un autre LLM, puis poursuivre la finalisation dans cette page.</p>
+        </div>
+        </article>
+
+        <article class="glass-card content-card">
+          <span class="section-tag">Étape 1</span>
+          <h3>Lecture du brouillon</h3>
+          <div class="rule-builder-meta">
+            <div class="account-summary-card">
+              <p class="account-summary-title">Motif métier</p>
+              <p id="ruleBuilderMotifText" class="settings-help">Aucun brouillon généré.</p>
+            </div>
+            <div class="account-summary-card">
+              <p class="account-summary-title">Décision</p>
+              <p id="ruleBuilderDecisionText" class="settings-help">L’IA indiquera ici si la demande mérite une règle.</p>
+            </div>
+          </div>
+          <label class="settings-field">
+            <span>Règle candidate</span>
+            <textarea id="ruleBuilderDraftText" class="settings-textarea" rows="14" readonly></textarea>
+          </label>
+          <label class="settings-field">
+            <span>Questions posées à l’administrateur</span>
+            <textarea id="ruleBuilderQuestionsText" class="settings-textarea" rows="10" readonly></textarea>
+          </label>
+        </article>
+      </section>
+
+      <section class="content-grid">
+        <article class="glass-card content-card content-card-wide">
+          <span class="section-tag">Étape 2</span>
+          <h3>Compléments administrateur</h3>
+          <label class="settings-field">
+            <span>Réponses administrateur</span>
+            <textarea id="ruleBuilderAdminAnswersInput" class="settings-textarea rule-builder-textarea-lg" rows="12" placeholder="Réponds ici aux questions de l’IA pour rendre la règle exploitable."></textarea>
+          </label>
+          <div class="form-actions">
+            <button id="ruleBuilderFinalizeBtn" class="action-button" type="button" disabled>Construire la règle finale</button>
+          </div>
+          <p id="ruleBuilderFinalizeFeedback" class="settings-help">La finalisation se débloque après génération d’un brouillon.</p>
+        </article>
+
+        <article class="glass-card content-card">
+          <span class="section-tag">Synthèse</span>
+          <h3>Constat</h3>
+          <label class="settings-field">
+            <span>Points à préciser</span>
+            <textarea id="ruleBuilderMissingPointsText" class="settings-textarea" rows="10" readonly></textarea>
+          </label>
+          <label class="settings-field">
+            <span>Effet attendu</span>
+            <textarea id="ruleBuilderExpectedEffectText" class="settings-textarea" rows="10" readonly></textarea>
+          </label>
+        </article>
+      </section>
+
+      <section class="content-grid">
+        <article class="glass-card content-card content-card-wide">
+          <span class="section-tag">Étape 3</span>
+          <h3>Règle finale</h3>
+          <form id="ruleBuilderSaveForm" class="settings-form">
+            <div class="settings-form-grid">
+              <label class="settings-field">
+                <span>Titre</span>
+                <input id="ruleBuilderFinalTitleInput" class="settings-select" type="text" />
+              </label>
+              <label class="settings-field">
+                <span>Type</span>
+                <select id="ruleBuilderFinalTypeInput" class="settings-select">
+                  <option value="content">Contenu</option>
+                  <option value="prudence">Prudence</option>
+                  <option value="validation">Validation</option>
+                  <option value="missing_info">Information manquante</option>
+                  <option value="source_access">Accès source</option>
+                </select>
+              </label>
+              <label class="settings-field">
+                <span>Application</span>
+                <input id="ruleBuilderFinalApplicationInput" class="settings-select" type="text" value="mail_assistant" />
+              </label>
+              <label class="settings-field">
+                <span>Boîte mail</span>
+                <input id="ruleBuilderFinalMailboxInput" class="settings-select" type="text" value="global" />
+              </label>
+              <label class="settings-field">
+                <span>Catégorie</span>
+                <input id="ruleBuilderFinalCategoryInput" class="settings-select" type="text" value="global" />
+              </label>
+              <label class="settings-field">
+                <span>Workflow</span>
+                <input id="ruleBuilderFinalWorkflowInput" class="settings-select" type="text" value="reply" />
+              </label>
+              <label class="settings-field">
+                <span>Thème</span>
+                <input id="ruleBuilderFinalThemeInput" class="settings-select" type="text" />
+              </label>
+              <label class="settings-field">
+                <span>Action si information manquante</span>
+                <select id="ruleBuilderFinalMissingActionInput" class="settings-select">
+                  <option value="cautious_reply">Réponse prudente</option>
+                  <option value="ask_for_more">Demander un complément</option>
+                  <option value="block_final_reply">Bloquer la réponse finale</option>
+                  <option value="require_human_validation">Validation humaine</option>
+                  <option value="require_external_source">Source externe requise</option>
+                </select>
+              </label>
+              <label class="settings-field">
+                <span>Priorité</span>
+                <input id="ruleBuilderFinalPriorityInput" class="settings-select" type="number" min="1" value="100" />
+              </label>
+              <label class="settings-field">
+                <span>Statut</span>
+                <select id="ruleBuilderFinalStatusInput" class="settings-select">
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </label>
+            </div>
+            <label class="settings-field">
+              <span>Texte final de la règle</span>
+              <textarea id="ruleBuilderFinalContentInput" class="settings-textarea" rows="12"></textarea>
+            </label>
+            <label class="settings-field">
+              <span>Note admin</span>
+              <textarea id="ruleBuilderFinalNotesInput" class="settings-textarea" rows="4"></textarea>
+            </label>
+            <div class="form-actions">
+              <button id="ruleBuilderSaveBtn" class="action-button" type="submit" disabled>Enregistrer dans les règles</button>
+              <a class="action-button secondary-button" href="/frontend/rules.html">Ouvrir le référentiel</a>
+            </div>
+            <p id="ruleBuilderSaveFeedback" class="settings-help">La règle finale sera modifiable avant enregistrement.</p>
+          </form>
+        </article>
+
+        <article class="glass-card content-card">
+          <span class="section-tag">Traçabilité</span>
+          <h3>Sortie IA</h3>
+          <label class="settings-field">
+            <span>Résumé</span>
+            <textarea id="ruleBuilderSummaryText" class="settings-textarea" rows="7" readonly></textarea>
+          </label>
+          <label class="settings-field">
+            <span>Lacunes restantes</span>
+            <textarea id="ruleBuilderRemainingGapsText" class="settings-textarea" rows="8" readonly></textarea>
+          </label>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="/frontend/js/sidebar.js"></script>
+  <script type="module" src="/frontend/js/rule-creation.js"></script>
+</body>
+</html>

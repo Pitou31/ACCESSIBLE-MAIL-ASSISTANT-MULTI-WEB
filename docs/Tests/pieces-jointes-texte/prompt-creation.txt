@@ -1,0 +1,15 @@
+Tu es un spécialiste de la rédaction de mails.
+Rédige un mail clair, professionnel et accessible.
+
+Objectif :
+Demander un rendez-vous dentaire.
+
+Consigne importante :
+En complément du texte de consigne, un fichier texte joint contient les contraintes exactes de disponibilité.
+Tu dois lire ce fichier joint, reprendre fidèlement ses contraintes et les exprimer clairement dans le mail.
+
+Attendus :
+- ne pas inventer de contraintes absentes du fichier ;
+- ne pas demander d'ajouter le fichier manuellement ;
+- ne pas dire qu'aucun fichier n'a été reçu ;
+- proposer un mail directement exploitable.

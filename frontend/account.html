@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connexion / Ouverture de compte</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Inter:wght@400;500;600;700;800&family=Lexend:wght@400;500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/frontend/css/styles.css" />
+</head>
+<body data-theme="midnight">
+  <div class="app-shell">
+    <!-- SIDEBAR -->
+
+    <main class="main-content">
+      <header class="hero-header glass-card">
+        <div class="hero-header-text">
+          <p class="eyebrow">Compte</p>
+          <h1>Accéder à votre espace</h1>
+          <p class="subtitle">Choisissez simplement votre parcours : vous connecter à votre compte existant ou ouvrir un nouveau compte.</p>
+        </div>
+      </header>
+
+      <section class="settings-toolbar glass-card">
+        <div>
+          <span class="section-tag">Point d’entrée</span>
+          <h3>Connexion ou création de compte</h3>
+          <p class="section-note">Cette page devient la porte d’entrée standard de l’application. Les traitements de connexion et d’ouverture de compte seront activés ensuite selon le choix de l’utilisateur.</p>
+        </div>
+      </section>
+
+      <section class="settings-grid">
+        <article class="glass-card settings-card">
+          <span class="section-tag">Option 1</span>
+          <h3>Se connecter</h3>
+          <p class="section-note">Accéder à un compte déjà existant et retrouver son espace, ses boîtes mail, ses paramètres et ses droits.</p>
+
+          <div class="settings-form-grid">
+            <div class="settings-field settings-field-full">
+              <label for="loginAccountType">Type de compte</label>
+              <select id="loginAccountType" class="settings-select">
+                <option value="individuel">Individuel</option>
+                <option value="entreprise">Entreprise</option>
+                <option value="collectivite">Collectivité</option>
+                <option value="association">Association</option>
+              </select>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label for="loginEmail">Adresse email</label>
+              <input id="loginEmail" class="settings-select" type="email" placeholder="nom@exemple.fr" />
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label for="loginPassword">Mot de passe</label>
+              <input id="loginPassword" class="settings-select" type="password" placeholder="Mot de passe" />
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <div class="mail-actions">
+                <button class="action-button" id="forgotPasswordButton" type="button">Mot de passe oublié</button>
+                <button class="action-button" id="accountStatusButton" type="button">Verifier mon statut</button>
+                <button class="action-button send-button" id="loginChoiceButton" type="button">Se connecter</button>
+                <button class="action-button" id="logoutButton" type="button">Se deconnecter</button>
+              </div>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <p class="settings-help form-feedback is-info" id="loginFeedback">Renseigne ton type de compte, ton email et ton mot de passe.</p>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <div class="account-summary-card" id="accountStatusCard">
+                <p class="settings-help">Aucun statut consulte pour le moment.</p>
+              </div>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <div class="account-summary-card" id="sessionStatusCard">
+                <p class="settings-help">Aucune session active.</p>
+              </div>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <div class="account-summary-card" id="providerStatusCard">
+                <p class="settings-help">Aucun fournisseur API personnel charge pour le moment.</p>
+              </div>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <div class="account-summary-card">
+                <p class="account-summary-title">Changer mon mot de passe</p>
+
+                <div class="settings-form-grid">
+                  <div class="settings-field settings-field-full">
+                    <label for="currentPassword">Mot de passe actuel</label>
+                    <input id="currentPassword" class="settings-select" type="password" placeholder="Mot de passe actuel" />
+                  </div>
+
+                  <div class="settings-field settings-field-full">
+                    <label for="newPassword">Nouveau mot de passe</label>
+                    <input id="newPassword" class="settings-select" type="password" placeholder="Au moins 10 caractères" />
+                  </div>
+
+                  <div class="settings-field settings-field-full">
+                    <label for="confirmNewPassword">Confirmer le nouveau mot de passe</label>
+                    <input id="confirmNewPassword" class="settings-select" type="password" placeholder="Confirmer le nouveau mot de passe" />
+                  </div>
+
+                  <div class="settings-field settings-field-full">
+                    <div class="mail-actions">
+                      <button class="action-button send-button" id="changePasswordButton" type="button">Changer mon mot de passe</button>
+                    </div>
+                  </div>
+
+                  <div class="settings-field settings-field-full">
+                    <p class="settings-help form-feedback is-info" id="changePasswordFeedback">Cette action est disponible pour un utilisateur connecté connaissant son mot de passe actuel.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="glass-card settings-card">
+          <span class="section-tag">Option 2</span>
+          <h3>Ouvrir un compte</h3>
+          <p class="section-note">Déposer une demande d’ouverture de compte pour utiliser l’application et rattacher ensuite une ou plusieurs boîtes mail.</p>
+
+          <div class="settings-form-grid">
+            <div class="settings-field settings-field-full">
+              <p class="settings-help">Un compte est ouvert une seule fois au départ puis reste attaché à son utilisateur, sauf suspension ou suppression décidée par l’administrateur. Les demandes de modification viendront plus tard dans un parcours séparé.</p>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <a class="action-button send-button" id="signupChoiceButton" href="/frontend/account-request.html">Ouvrir un compte</a>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="/frontend/js/sidebar.js"></script>
+  <script src="/frontend/js/providerApiClient.js"></script>
+  <script src="/frontend/js/shared/identity-formatting.js"></script>
+  <script src="/frontend/js/shared/human-verification.js"></script>
+  <script src="/frontend/js/account.js"></script>
+</body>
+</html>

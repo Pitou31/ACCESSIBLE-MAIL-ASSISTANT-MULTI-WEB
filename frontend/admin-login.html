@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connexion administrateur</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Inter:wght@400;500;600;700;800&family=Lexend:wght@400;500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/frontend/css/styles.css" />
+</head>
+<body data-theme="midnight">
+  <div class="app-shell">
+    <main class="main-content">
+      <header class="hero-header glass-card">
+        <div class="hero-header-text">
+          <p class="eyebrow">Administration</p>
+          <h1>Connexion administrateur</h1>
+          <p class="subtitle">Accès réservé aux comptes administrateurs pour l’espace privé et la gestion des règles.</p>
+        </div>
+      </header>
+
+      <section class="settings-grid">
+        <article class="glass-card settings-card">
+          <span class="section-tag">Accès privé</span>
+          <h3>Ouvrir une session admin</h3>
+
+          <div class="settings-form-grid">
+            <div class="settings-field settings-field-full">
+              <label for="adminLoginEmail">Adresse email administrateur</label>
+              <input id="adminLoginEmail" class="settings-select" type="email" placeholder="nom@exemple.fr" />
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label for="adminLoginPassword">Mot de passe</label>
+              <input id="adminLoginPassword" class="settings-select" type="password" placeholder="Mot de passe administrateur" />
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label class="settings-toggle">
+                <input id="adminLoginHumanConfirmation" type="checkbox" />
+                <span>Je confirme être un humain</span>
+              </label>
+              <input id="adminLoginTurnstileToken" type="hidden" value="" />
+            </div>
+
+            <div class="settings-field settings-field-full" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
+              <label for="adminLoginWebsite">Ne pas remplir ce champ</label>
+              <input id="adminLoginWebsite" class="settings-select" type="text" tabindex="-1" autocomplete="off" />
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <div class="mail-actions">
+                <button class="action-button send-button" id="adminLoginButton" type="button">Se connecter en admin</button>
+                <button class="action-button" id="adminLogoutButton" type="button">Se déconnecter</button>
+              </div>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <p class="settings-help form-feedback is-info" id="adminLoginFeedback">Renseigne l’email et le mot de passe d’un compte administrateur actif.</p>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <div class="account-summary-card" id="adminLoginStatusCard">
+                <p class="settings-help">Aucune session administrateur active.</p>
+              </div>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <div class="mail-actions">
+                <a class="action-button" href="/frontend/admin-private.html">Ouvrir l’espace administrateur privé</a>
+                <a class="action-button" href="/frontend/rules.html">Ouvrir la page Règles</a>
+              </div>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <div class="account-summary-card">
+                <p class="account-summary-title">Changer le mot de passe admin</p>
+                <div class="settings-form-grid">
+                  <div class="settings-field settings-field-full">
+                    <label for="adminCurrentPassword">Mot de passe actuel</label>
+                    <input id="adminCurrentPassword" class="settings-select" type="password" placeholder="Mot de passe actuel" />
+                  </div>
+                  <div class="settings-field settings-field-full">
+                    <label for="adminNewPassword">Nouveau mot de passe</label>
+                    <input id="adminNewPassword" class="settings-select" type="password" placeholder="Au moins 10 caractères" />
+                  </div>
+                  <div class="settings-field settings-field-full">
+                    <label for="adminConfirmPassword">Confirmer le nouveau mot de passe</label>
+                    <input id="adminConfirmPassword" class="settings-select" type="password" placeholder="Confirmer le nouveau mot de passe" />
+                  </div>
+                  <div class="settings-field settings-field-full">
+                    <label class="settings-toggle">
+                      <input id="adminChangePasswordHumanConfirmation" type="checkbox" />
+                      <span>Je confirme être un humain</span>
+                    </label>
+                    <input id="adminChangePasswordTurnstileToken" type="hidden" value="" />
+                  </div>
+                  <div class="settings-field settings-field-full" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
+                    <label for="adminChangePasswordWebsite">Ne pas remplir ce champ</label>
+                    <input id="adminChangePasswordWebsite" class="settings-select" type="text" tabindex="-1" autocomplete="off" />
+                  </div>
+                  <div class="settings-field settings-field-full">
+                    <div class="mail-actions">
+                      <button class="action-button send-button" id="adminChangePasswordButton" type="button">Changer le mot de passe admin</button>
+                    </div>
+                  </div>
+                  <div class="settings-field settings-field-full">
+                    <p class="settings-help form-feedback is-info" id="adminChangePasswordFeedback">Disponible uniquement pour une session administrateur active.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="/frontend/js/sidebar.js"></script>
+  <script src="/frontend/js/shared/identity-formatting.js"></script>
+  <script src="/frontend/js/shared/human-verification.js"></script>
+  <script src="/frontend/js/admin-login.js"></script>
+</body>
+</html>

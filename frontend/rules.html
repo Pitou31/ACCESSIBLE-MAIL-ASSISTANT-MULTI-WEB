@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Règles</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/frontend/css/styles.css" />
+</head>
+<body data-theme="midnight">
+  <div class="app-shell">
+    <!-- SIDEBAR -->
+
+    <main class="main-content">
+      <header class="hero-header glass-card">
+        <div class="hero-header-text">
+          <p class="eyebrow">Métier</p>
+          <h1>Règles</h1>
+          <p class="subtitle">Référentiel métier injecté dans le prompt IA. Création et modification réservées à l’administrateur.</p>
+          <p class="section-note">Note produit : cette page fait partie de l’outillage d’administration local. Une séparation propre entre espace administrateur et espace utilisateur sera nécessaire avant déploiement sur serveur externe.</p>
+        </div>
+      </header>
+
+      <section class="content-grid">
+        <article class="glass-card content-card content-card-wide">
+          <span class="section-tag">Gouvernance</span>
+          <h3>Cadre de gestion</h3>
+          <p id="rulesAccessSummary" class="settings-help">Vérification des droits en cours...</p>
+          <ul class="feature-list">
+            <li>Créer uniquement des règles générales, utiles et répétitives.</li>
+            <li>Éviter les cas particuliers sans valeur représentative.</li>
+            <li>Utiliser les règles pour guider l’IA quand le contexte du mail est insuffisant.</li>
+            <li>Préparer plus tard des règles d’accès à des sources autorisées.</li>
+          </ul>
+          <div class="form-actions">
+            <a class="action-button" href="/frontend/rule-creation.html">Créer une règle assistée</a>
+          </div>
+        </article>
+
+        <article class="glass-card content-card">
+          <span class="section-tag">Filtres</span>
+          <h3>Règles actives</h3>
+          <label class="settings-field">
+            <span>Statut</span>
+            <select id="rulesStatusFilter" class="settings-select">
+              <option value="">Tous</option>
+              <option value="active">Actives</option>
+              <option value="inactive">Inactives</option>
+            </select>
+          </label>
+          <label class="settings-field">
+            <span>Workflow</span>
+            <select id="rulesWorkflowFilter" class="settings-select">
+              <option value="">Tous</option>
+              <option value="reply">Réponse</option>
+              <option value="create">Création</option>
+              <option value="validation">Validation</option>
+              <option value="automatic_processing">Traitement automatique</option>
+              <option value="global">Global</option>
+            </select>
+          </label>
+          <label class="settings-field">
+            <span>Type</span>
+            <select id="rulesTypeFilter" class="settings-select">
+              <option value="">Tous</option>
+              <option value="content">Contenu</option>
+              <option value="prudence">Prudence</option>
+              <option value="validation">Validation</option>
+              <option value="missing_info">Information manquante</option>
+              <option value="source_access">Accès source</option>
+            </select>
+          </label>
+          <label class="settings-field">
+            <span>Recherche</span>
+            <input id="rulesSearchInput" class="settings-select" type="text" placeholder="Titre, thème ou contenu" />
+          </label>
+          <button id="rulesRefreshBtn" class="action-button secondary-button" type="button">Rafraîchir</button>
+        </article>
+      </section>
+
+      <section class="content-grid">
+        <article class="glass-card content-card content-card-wide">
+          <span class="section-tag">Référentiel</span>
+          <h3>Liste des règles</h3>
+          <p id="rulesListFeedback" class="settings-help">Chargement des règles...</p>
+          <div id="rulesListContainer" class="stacked-list"></div>
+        </article>
+
+        <article class="glass-card content-card">
+          <span class="section-tag">Edition</span>
+          <h3 id="rulesEditorTitle">Nouvelle règle</h3>
+          <form id="rulesEditorForm" class="settings-form">
+            <label class="settings-field">
+              <span>Titre</span>
+              <input id="ruleTitleInput" class="settings-select" type="text" placeholder="Ex. Ne pas confirmer la lisibilité d’une image non analysée" />
+            </label>
+            <label class="settings-field">
+              <span>Type</span>
+              <select id="ruleTypeInput" class="settings-select">
+                <option value="prudence">Prudence</option>
+                <option value="content">Contenu</option>
+                <option value="validation">Validation</option>
+                <option value="missing_info">Information manquante</option>
+                <option value="source_access">Accès source</option>
+              </select>
+            </label>
+            <label class="settings-field">
+              <span>Application</span>
+              <input id="ruleApplicationScopeInput" class="settings-select" type="text" value="mail_assistant" />
+            </label>
+            <label class="settings-field">
+              <span>Boîte mail</span>
+              <input id="ruleMailboxScopeInput" class="settings-select" type="text" value="global" />
+            </label>
+            <label class="settings-field">
+              <span>Catégorie de mail</span>
+              <input id="ruleCategoryScopeInput" class="settings-select" type="text" value="global" />
+            </label>
+            <label class="settings-field">
+              <span>Workflow</span>
+              <select id="ruleWorkflowScopeInput" class="settings-select">
+                <option value="reply">Réponse</option>
+                <option value="create">Création</option>
+                <option value="validation">Validation</option>
+                <option value="automatic_processing">Traitement automatique</option>
+                <option value="global">Global</option>
+              </select>
+            </label>
+            <label class="settings-field">
+              <span>Thème</span>
+              <input id="ruleThemeInput" class="settings-select" type="text" placeholder="Ex. pieces_jointes" />
+            </label>
+            <label class="settings-field">
+              <span>Action si information manquante</span>
+              <select id="ruleMissingInfoActionInput" class="settings-select">
+                <option value="cautious_reply">Réponse prudente</option>
+                <option value="ask_for_more">Demander un complément</option>
+                <option value="block_final_reply">Bloquer la réponse finale</option>
+                <option value="require_human_validation">Validation humaine</option>
+                <option value="require_external_source">Source externe requise</option>
+              </select>
+            </label>
+            <label class="settings-field">
+              <span>Priorité</span>
+              <input id="rulePriorityRankInput" class="settings-select" type="number" min="1" value="100" />
+            </label>
+            <label class="settings-field">
+              <span>Statut</span>
+              <select id="ruleStatusInput" class="settings-select">
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </label>
+            <label class="settings-field">
+              <span>Règle</span>
+              <textarea id="ruleContentInput" class="settings-textarea" rows="7" placeholder="Texte exact de la règle transmis à l’IA"></textarea>
+            </label>
+            <label class="settings-field">
+              <span>Note admin</span>
+              <textarea id="ruleNotesInput" class="settings-textarea" rows="3" placeholder="Commentaire interne non transmis à l’IA"></textarea>
+            </label>
+            <div class="form-actions">
+              <button id="ruleSaveBtn" class="action-button" type="submit">Enregistrer la règle</button>
+              <button id="ruleResetBtn" class="action-button secondary-button" type="button">Nouvelle règle</button>
+            </div>
+            <p id="rulesEditorFeedback" class="settings-help">Seuls les administrateurs peuvent modifier les règles.</p>
+          </form>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="/frontend/js/sidebar.js"></script>
+  <script type="module" src="/frontend/js/rules.js"></script>
+</body>
+</html>

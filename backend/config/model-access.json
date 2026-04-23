@@ -1,0 +1,12 @@
+{
+  "roles": {
+    "mac": {
+      "blockedModels": [
+        "gemma4:26b"
+      ]
+    },
+    "spark": {
+      "blockedModels": []
+    }
+  }
+}

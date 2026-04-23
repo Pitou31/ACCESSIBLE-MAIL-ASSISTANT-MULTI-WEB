@@ -1,0 +1,128 @@
+{
+  "dataset_name": "jeu_essai_gmail_v1",
+  "language": "fr",
+  "created_at": "2026-03-19",
+  "notes": "Jeu d'essai sans categorie ni priorite. Ces champs doivent etre produits par l'analyse IA au moment du traitement.",
+  "mails": [
+    {
+      "id": "mail-test-001",
+      "from_name": "Claire Martin",
+      "from_email": "claire.martin.test@example.com",
+      "to_email": "assistantmail.test@gmail.com",
+      "subject": "Demande de renseignements sur les délais",
+      "date": "2026-03-19 09:10",
+      "body": "Bonjour,\n\nJe souhaiterais savoir quels sont actuellement les delais moyens pour obtenir une reponse a une demande transmise via votre service.\n\nJe vous remercie par avance pour votre retour.\n\nBien cordialement,\nClaire Martin",
+      "attachments": []
+    },
+    {
+      "id": "mail-test-002",
+      "from_name": "Paul Bernard",
+      "from_email": "paul.bernard.test@example.com",
+      "to_email": "assistantmail.test@gmail.com",
+      "subject": "Relance concernant mon dossier",
+      "date": "2026-03-19 09:25",
+      "body": "Bonjour,\n\nJe me permets de vous relancer au sujet de mon dossier transmis la semaine derniere.\nJe n'ai pas encore recu de retour et je voulais savoir si mon message avait bien ete pris en compte.\n\nMerci beaucoup.\n\nCordialement,\nPaul Bernard",
+      "attachments": []
+    },
+    {
+      "id": "mail-test-003",
+      "from_name": "Nadia Lefevre",
+      "from_email": "nadia.lefevre.test@example.com",
+      "to_email": "assistantmail.test@gmail.com",
+      "subject": "Question au sujet de la facture de mars",
+      "date": "2026-03-19 10:00",
+      "body": "Bonjour,\n\nJe vous contacte au sujet de la facture recue ce matin. Je voudrais verifier si le montant correspond bien a la prestation prevue, car j'ai un doute sur une ligne.\n\nPouvez-vous me confirmer ce point ?\n\nMerci d'avance.\n\nBien cordialement,\nNadia Lefevre",
+      "attachments": [
+        {
+          "filename": "facture_test.pdf",
+          "description": "Fausse facture de test"
+        }
+      ]
+    },
+    {
+      "id": "mail-test-004",
+      "from_name": "Julien Robert",
+      "from_email": "julien.robert.test@example.com",
+      "to_email": "assistantmail.test@gmail.com",
+      "subject": "Documents a transmettre pour finaliser ma demande",
+      "date": "2026-03-19 10:20",
+      "body": "Bonjour,\n\nJe souhaiterais savoir quels documents exacts je dois vous transmettre pour completer mon dossier.\n\nSi possible, pouvez-vous me faire une liste simple afin que je puisse preparer l'ensemble sans oubli ?\n\nMerci pour votre aide.\n\nCordialement,\nJulien Robert",
+      "attachments": []
+    },
+    {
+      "id": "mail-test-005",
+      "from_name": "Sophie Lambert",
+      "from_email": "sophie.lambert.test@example.com",
+      "to_email": "assistantmail.test@gmail.com",
+      "subject": "Problème rencontré lors de ma dernière démarche",
+      "date": "2026-03-19 10:45",
+      "body": "Bonjour,\n\nJe vous ecris car j'ai rencontre un probleme dans le suivi de ma demande. Certaines informations semblent ne pas avoir ete prises en compte, ce qui m'inquiete.\n\nJe souhaiterais savoir comment corriger la situation.\n\nMerci de votre retour.\n\nBien cordialement,\nSophie Lambert",
+      "attachments": []
+    },
+    {
+      "id": "mail-test-006",
+      "from_name": "Marc Petit",
+      "from_email": "marc.petit.test@example.com",
+      "to_email": "assistantmail.test@gmail.com",
+      "subject": "Merci pour votre réponse",
+      "date": "2026-03-19 11:05",
+      "body": "Bonjour,\n\nMerci pour votre dernier message, tout est clair pour moi.\nJe reviendrai vers vous si j'ai besoin d'un complement d'information.\n\nBien cordialement,\nMarc Petit",
+      "attachments": []
+    },
+    {
+      "id": "mail-test-007",
+      "from_name": "Emma Girard",
+      "from_email": "emma.girard.test@example.com",
+      "to_email": "assistantmail.test@gmail.com",
+      "subject": "Transmission d'une photo de document",
+      "date": "2026-03-19 11:20",
+      "body": "Bonjour,\n\nComme convenu, je vous transmets en piece jointe une photo du document demande.\nPouvez-vous me confirmer qu'elle est suffisamment lisible ?\n\nMerci par avance.\n\nBien cordialement,\nEmma Girard",
+      "attachments": [
+        {
+          "filename": "photo_document.jpg",
+          "description": "Photo de document de test"
+        }
+      ]
+    },
+    {
+      "id": "mail-test-008",
+      "from_name": "Association Horizon Solidaire",
+      "from_email": "contact.horizon.solidaire.test@example.com",
+      "to_email": "assistantmail.test@gmail.com",
+      "subject": "Question relative à l'accessibilité d'un dossier",
+      "date": "2026-03-19 11:40",
+      "body": "Bonjour,\n\nNous vous contactons au sujet d'un dossier lie a une situation de handicap. Nous souhaiterions savoir si des modalites particulieres sont prevues afin de simplifier les echanges et la transmission des pieces necessaires.\n\nMerci pour votre retour.\n\nCordialement,\nAssociation Horizon Solidaire",
+      "attachments": [
+        {
+          "filename": "justificatif_handicap.pdf",
+          "description": "Document fictif de test lie au handicap"
+        }
+      ]
+    },
+    {
+      "id": "mail-test-009",
+      "from_name": "Luc Moreau",
+      "from_email": "luc.moreau.test@example.com",
+      "to_email": "assistantmail.test@gmail.com",
+      "subject": "URGENT - besoin d'une réponse aujourd'hui",
+      "date": "2026-03-19 12:05",
+      "body": "Bonjour,\n\nJe me permets de vous ecrire a nouveau car j'aurais besoin d'une reponse aujourd'hui si possible. Ma situation demande une clarification rapide afin que je puisse prendre une decision.\n\nMerci d'avance pour votre retour des que possible.\n\nCordialement,\nLuc Moreau",
+      "attachments": []
+    },
+    {
+      "id": "mail-test-010",
+      "from_name": "Helene Dubois",
+      "from_email": "helene.dubois.test@example.com",
+      "to_email": "assistantmail.test@gmail.com",
+      "subject": "Demande détaillée concernant plusieurs points de mon dossier",
+      "date": "2026-03-19 12:30",
+      "body": "Bonjour,\n\nJe me permets de vous contacter car j'aurais besoin de plusieurs precisions concernant mon dossier. En effet, je souhaiterais savoir d'une part si les documents deja transmis sont suffisants, d'autre part si un delai previsionnel peut etre communique, et enfin s'il existe une procedure simplifiee pour transmettre les informations complementaires.\n\nJe prefere vous ecrire de facon detaillee afin d'eviter toute erreur ou incomprehension, car la demarche est importante pour moi. Si certains points ne sont pas clairs, n'hesitez pas a me le signaler.\n\nJe vous remercie sincerement pour le temps consacre a ma demande et reste a votre disposition pour tout complement utile.\n\nBien cordialement,\nHelene Dubois",
+      "attachments": [
+        {
+          "filename": "courrier_administratif.docx",
+          "description": "Courrier administratif fictif de test"
+        }
+      ]
+    }
+  ]
+}

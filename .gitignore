@@ -1,0 +1,26 @@
+# Env actif (contient secrets) — ne jamais commiter
+.env
+
+# Envs de référence par plateforme — commitées volontairement
+!.env.spark
+!.env.mac
+
+# Dépendances
+node_modules/
+
+# Données locales
+backend/data/
+
+# Sauvegardes internes
+sauvegarde/
+
+# Fichiers système
+.DS_Store
+*.log
+
+# Compilés Python
+__pycache__/
+*.pyc
+
+# Archives
+*.zip

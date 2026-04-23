@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sauvegardes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/frontend/css/styles.css" />
+</head>
+<body data-theme="midnight" data-page="backups">
+  <div class="app-shell">
+    <!-- SIDEBAR -->
+
+    <main class="main-content">
+      <header class="hero-header glass-card">
+        <div class="hero-header-text">
+          <p class="eyebrow">Sécurité</p>
+          <h1>Sauvegardes</h1>
+          <p class="subtitle">Cette page privée permet de lancer un snapshot standardisé du projet, de restaurer un projet BIS et de suivre l’historique utile.</p>
+          <p class="section-note">Note produit : cette page est un outil d’administration local sur Mac. Lors de la migration vers le serveur de production, elle devra être séparée de l’espace utilisateur.</p>
+        </div>
+      </header>
+
+      <section class="settings-toolbar glass-card">
+        <div>
+          <span class="section-tag">Méthode</span>
+          <h3>Règle standard</h3>
+          <p class="section-note">Le projet actif ne contient plus ses sauvegardes. Les snapshots locaux vont dans une bibliothèque centrale, puis sont repris par Mac, Spark et Extreme Pro.</p>
+        </div>
+      </section>
+
+      <section class="settings-grid">
+        <article class="glass-card settings-card">
+          <span class="section-tag">Action 1</span>
+          <h3>Créer un snapshot projet</h3>
+          <p class="section-note">Créer une sauvegarde standardisée avec un titre lisible, hors du projet.</p>
+
+          <div class="settings-form-grid">
+            <div class="settings-field settings-field-full">
+              <label for="backupLabelInput">Titre de sauvegarde</label>
+              <input id="backupLabelInput" class="settings-select" type="text" value="Sauvegarde projet accessible_mail_assistant_multi" />
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <div class="mail-actions">
+                <button class="action-button send-button" id="createSnapshotButton" type="button">Créer le snapshot</button>
+                <button class="action-button" id="refreshSnapshotsButton" type="button">Rafraîchir</button>
+              </div>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <p class="settings-help form-feedback is-info" id="snapshotFeedback">Aucun lancement pour le moment.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="glass-card settings-card">
+          <span class="section-tag">Action 2</span>
+          <h3>Restaurer un projet BIS</h3>
+          <p class="section-note">Recréer automatiquement un projet de contrôle à partir d’un snapshot, sans toucher au projet principal.</p>
+
+          <div class="settings-form-grid">
+            <div class="settings-field settings-field-full">
+              <label for="snapshotSelect">Snapshot source</label>
+              <select id="snapshotSelect" class="settings-select"></select>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <label class="settings-help" for="reuseNodeModulesToggle">
+                <input id="reuseNodeModulesToggle" type="checkbox" checked />
+                Réutiliser les node_modules du projet courant pour le BIS
+              </label>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <div class="mail-actions">
+                <button class="action-button send-button" id="restoreBisButton" type="button">Restaurer le projet BIS</button>
+              </div>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <p class="settings-help form-feedback is-info" id="restoreFeedback">Aucune restauration lancée pour le moment.</p>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="content-grid">
+        <article class="glass-card content-card content-card-wide">
+          <span class="section-tag">Bibliothèque</span>
+          <h3>Emplacements standardisés</h3>
+          <ul class="feature-list" id="backupPathsList">
+            <li>Chargement des emplacements…</li>
+          </ul>
+        </article>
+
+        <article class="glass-card content-card content-card-wide">
+          <span class="section-tag">Historique</span>
+          <h3>Snapshots disponibles</h3>
+          <div id="snapshotsSummary" class="section-note">Chargement…</div>
+          <div id="snapshotsList" class="feature-list"></div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="/frontend/js/sidebar.js"></script>
+  <script src="/frontend/js/backups.js"></script>
+</body>
+</html>
