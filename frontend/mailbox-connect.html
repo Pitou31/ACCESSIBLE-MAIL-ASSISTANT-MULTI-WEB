@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connexion de ma boîte mail</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Inter:wght@400;500;600;700;800&family=Lexend:wght@400;500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/frontend/css/styles.css" />
+</head>
+<body data-theme="midnight">
+  <div class="app-shell">
+    <main class="main-content">
+      <header class="hero-header glass-card">
+        <div class="hero-header-text">
+          <p class="eyebrow">Boîte mail</p>
+          <h1>Connexion de ma boîte mail</h1>
+          <p class="subtitle">Connectez simplement votre messagerie Gmail. La configuration technique de la plateforme est gérée séparément.</p>
+        </div>
+      </header>
+
+      <section class="settings-grid">
+        <article class="glass-card settings-card">
+          <span class="section-tag">Étape 1</span>
+          <h3>Mon compte</h3>
+          <p class="section-note" id="mailboxAccountSummary">Connexion utilisateur requise.</p>
+        </article>
+
+        <article class="glass-card settings-card">
+          <span class="section-tag">Étape 2</span>
+          <h3>Connexion Gmail</h3>
+          <p class="section-note">Entrez l'adresse Gmail que vous souhaitez utiliser, puis cliquez sur le bouton de connexion. Vous serez redirigé automatiquement vers Google.</p>
+
+          <div class="settings-form-grid">
+            <div class="settings-field settings-field-full">
+              <label for="mailboxEmailInput">Adresse de la boîte mail</label>
+              <input id="mailboxEmailInput" class="settings-select" type="email" placeholder="testagentmail.js@gmail.com" />
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <p class="settings-help" id="mailboxProviderHintUser">Seules les boîtes Gmail sont activées pour le moment.</p>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <div class="mail-actions">
+                <button class="action-button send-button" id="mailboxConnectStartButton" type="button">Connecter ma boîte Gmail</button>
+                <button class="action-button" id="mailboxRefreshStateButton" type="button">Actualiser</button>
+              </div>
+            </div>
+
+            <div class="settings-field settings-field-full">
+              <p class="settings-help form-feedback is-info" id="mailboxConnectFeedback">Aucune boîte mail connectée pour le moment.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="glass-card settings-card">
+          <span class="section-tag">État</span>
+          <h3>Boîtes actuellement reliées</h3>
+          <p class="section-note">Après validation Google, vous reviendrez automatiquement dans l'application.</p>
+          <div id="mailboxConnectionsUserList" class="mailbox-message-list">
+            <article class="account-summary-card">
+              <p class="settings-help">Aucune connexion enregistrée.</p>
+            </article>
+          </div>
+        </article>
+
+        <article class="glass-card settings-card">
+          <span class="section-tag">Aide</span>
+          <h3>Ce que vous avez à faire</h3>
+          <p class="settings-help">Vous n'avez rien à configurer dans Google Cloud. Il suffit de cliquer sur le bouton de connexion puis d'accepter l'autorisation demandée par Google.</p>
+          <div class="mail-actions">
+            <a class="action-button" href="/frontend/account.html">Retour au compte</a>
+            <a class="action-button" href="/frontend/mail.html">Aller à la page Mails</a>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="/frontend/js/mailbox-connect.js"></script>
+</body>
+</html>

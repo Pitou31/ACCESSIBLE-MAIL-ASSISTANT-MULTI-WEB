@@ -42,9 +42,12 @@
   function getStoredAudioInputEnabled() {
     try {
       const settings = JSON.parse(localStorage.getItem(getSessionStorageKey(SETTINGS_STORAGE_KEY)) || "{}")
-      return Boolean(settings.audioInputEnabled)
+      if (typeof settings.audioInputEnabled === "boolean") {
+        return settings.audioInputEnabled
+      }
+      return true
     } catch (_) {
-      return false
+      return true
     }
   }
 
@@ -60,13 +63,13 @@
   function getStoredAudioInputProvider() {
     try {
       const settings = JSON.parse(localStorage.getItem(getSessionStorageKey(SETTINGS_STORAGE_KEY)) || "{}")
-      const provider = String(settings.audioInputProvider || "deepgram").trim().toLowerCase()
+      const provider = String(settings.audioInputProvider || "assemblyai").trim().toLowerCase()
       if (provider === "assemblyai" || provider === "local" || provider === "deepgram") {
         return provider
       }
-      return "deepgram"
+      return "assemblyai"
     } catch (_) {
-      return "deepgram"
+      return "assemblyai"
     }
   }
 
@@ -859,7 +862,18 @@
     }
 
     getSelectedProvider() {
-      return this.runtimeProviderOverride || getStoredAudioInputProvider()
+      if (this.runtimeProviderOverride) {
+        return this.runtimeProviderOverride
+      }
+
+      const storedProvider = getStoredAudioInputProvider()
+      if (storedProvider === "deepgram" && !this.deepgramReady && this.assemblyAiReady) {
+        return "assemblyai"
+      }
+      if (storedProvider === "assemblyai" && !this.assemblyAiReady && this.deepgramReady) {
+        return "deepgram"
+      }
+      return storedProvider
     }
 
     rebaseCurrentActionFromVisibleText() {

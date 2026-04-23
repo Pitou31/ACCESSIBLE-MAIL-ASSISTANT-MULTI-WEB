@@ -2,8 +2,8 @@ function getDefaultUserPreferences() {
   return {
     ui: {},
     audio: {
-      audioInputEnabled: false,
-      audioInputProvider: "deepgram",
+      audioInputEnabled: true,
+      audioInputProvider: "assemblyai",
       audioInputDeviceId: "",
       allowLocalFallback: true
     },
@@ -11,7 +11,7 @@ function getDefaultUserPreferences() {
       defaultMode: "reply"
     },
     provider: {
-      preferredAudioProvider: "deepgram",
+      preferredAudioProvider: "assemblyai",
       preferredLlmProvider: "",
       allowLocalFallback: true
     }

@@ -37,12 +37,12 @@ const SESSION_KEY = "mail-assistant-session"
 const SETTINGS_STORAGE_KEY = "mail-assistant-settings"
 const MAIL_SETTINGS_DEFAULTS = {
   predictiveDictionaryEnabled: false,
-  translationActionsEnabled: false,
-  summaryActionsEnabled: false,
+  translationActionsEnabled: true,
+  summaryActionsEnabled: true,
   rephraseActionsEnabled: true,
   translationTargetLanguage: "fr",
-  audioInputEnabled: false,
-  audioInputProvider: "deepgram",
+  audioInputEnabled: true,
+  audioInputProvider: "assemblyai",
   audioInputDeviceId: "",
   defaultMode: "reply"
 }
@@ -81,6 +81,9 @@ const creationAttachmentsTranslationSelect = document.getElementById("creationAt
 const creationAttachmentsSummaryPanel = document.getElementById("creationAttachmentsSummaryPanel")
 const creationAttachmentsSummaryFeedback = document.getElementById("creationAttachmentsSummaryFeedback")
 const creationAttachmentsSummaryResult = document.getElementById("creationAttachmentsSummaryResult")
+const creationAttachmentsRephrasePanel = document.getElementById("creationAttachmentsRephrasePanel")
+const creationAttachmentsRephraseFeedback = document.getElementById("creationAttachmentsRephraseFeedback")
+const creationAttachmentsRephraseResult = document.getElementById("creationAttachmentsRephraseResult")
 const creationOutputAttachmentsTranslationPanel = document.getElementById("creationOutputAttachmentsTranslationPanel")
 const creationOutputAttachmentsTranslationFeedback = document.getElementById("creationOutputAttachmentsTranslationFeedback")
 const creationOutputAttachmentsTranslationResult = document.getElementById("creationOutputAttachmentsTranslationResult")
@@ -88,6 +91,9 @@ const creationOutputAttachmentsTranslationSelect = document.getElementById("crea
 const creationOutputAttachmentsSummaryPanel = document.getElementById("creationOutputAttachmentsSummaryPanel")
 const creationOutputAttachmentsSummaryFeedback = document.getElementById("creationOutputAttachmentsSummaryFeedback")
 const creationOutputAttachmentsSummaryResult = document.getElementById("creationOutputAttachmentsSummaryResult")
+const creationOutputAttachmentsRephrasePanel = document.getElementById("creationOutputAttachmentsRephrasePanel")
+const creationOutputAttachmentsRephraseFeedback = document.getElementById("creationOutputAttachmentsRephraseFeedback")
+const creationOutputAttachmentsRephraseResult = document.getElementById("creationOutputAttachmentsRephraseResult")
 const creationOutputMailContent = document.getElementById("creationOutputMailContent")
 const creationOutputTranslationPanel = document.getElementById("creationOutputTranslationPanel")
 const creationOutputTranslationFeedback = document.getElementById("creationOutputTranslationFeedback")
@@ -123,6 +129,9 @@ const receivedAttachmentsTranslationSelect = document.getElementById("receivedAt
 const receivedAttachmentsSummaryPanel = document.getElementById("receivedAttachmentsSummaryPanel")
 const receivedAttachmentsSummaryFeedback = document.getElementById("receivedAttachmentsSummaryFeedback")
 const receivedAttachmentsSummaryResult = document.getElementById("receivedAttachmentsSummaryResult")
+const receivedAttachmentsRephrasePanel = document.getElementById("receivedAttachmentsRephrasePanel")
+const receivedAttachmentsRephraseFeedback = document.getElementById("receivedAttachmentsRephraseFeedback")
+const receivedAttachmentsRephraseResult = document.getElementById("receivedAttachmentsRephraseResult")
 const replyAttachmentsInfo = document.getElementById("replyAttachmentsInfo")
 const replyAttachments = document.getElementById("replyAttachments")
 const replyAttachmentsPreview = document.getElementById("replyAttachmentsPreview")
@@ -134,6 +143,9 @@ const replyAttachmentsTranslationSelect = document.getElementById("replyAttachme
 const replyAttachmentsSummaryPanel = document.getElementById("replyAttachmentsSummaryPanel")
 const replyAttachmentsSummaryFeedback = document.getElementById("replyAttachmentsSummaryFeedback")
 const replyAttachmentsSummaryResult = document.getElementById("replyAttachmentsSummaryResult")
+const replyAttachmentsRephrasePanel = document.getElementById("replyAttachmentsRephrasePanel")
+const replyAttachmentsRephraseFeedback = document.getElementById("replyAttachmentsRephraseFeedback")
+const replyAttachmentsRephraseResult = document.getElementById("replyAttachmentsRephraseResult")
 const replyOutputMailContent = document.getElementById("replyOutputMailContent")
 const replyOutputTranslationPanel = document.getElementById("replyOutputTranslationPanel")
 const replyOutputTranslationFeedback = document.getElementById("replyOutputTranslationFeedback")
@@ -786,6 +798,59 @@ function getTextAssistConfig(action, target) {
         feedbackElement: creationOutputRephraseFeedback,
         resultElement: creationOutputRephraseResult,
         workflow: "creation"
+      },
+      "pièces jointes de création": {
+        panelElement: creationAttachmentsRephrasePanel,
+        feedbackElement: creationAttachmentsRephraseFeedback,
+        resultElement: creationAttachmentsRephraseResult,
+        workflow: "creation",
+        async getPayload() {
+          if ((!currentCreationAttachmentDescriptors || currentCreationAttachmentDescriptors.length === 0) && creationAttachments?.files?.length) {
+            currentCreationAttachmentDescriptors = await buildAttachmentDescriptorsFromInput(creationAttachments)
+          }
+          return {
+            attachments: pickSelectedAttachment(getCurrentCreationAttachments(), creationAttachmentsTranslationSelect)
+          }
+        }
+      },
+      "pièces jointes du mail de création": {
+        panelElement: creationOutputAttachmentsRephrasePanel,
+        feedbackElement: creationOutputAttachmentsRephraseFeedback,
+        resultElement: creationOutputAttachmentsRephraseResult,
+        workflow: "creation",
+        async getPayload() {
+          if ((!currentCreationOutputAttachmentDescriptors || currentCreationOutputAttachmentDescriptors.length === 0) && creationOutputAttachments?.files?.length) {
+            currentCreationOutputAttachmentDescriptors = await buildAttachmentDescriptorsFromInput(creationOutputAttachments)
+          }
+          return {
+            attachments: pickSelectedAttachment(currentCreationOutputAttachmentDescriptors, creationOutputAttachmentsTranslationSelect)
+          }
+        }
+      },
+      "pièces jointes reçues": {
+        panelElement: receivedAttachmentsRephrasePanel,
+        feedbackElement: receivedAttachmentsRephraseFeedback,
+        resultElement: receivedAttachmentsRephraseResult,
+        workflow: "reply",
+        getPayload() {
+          return {
+            attachments: pickSelectedAttachment(getCurrentReceivedAttachments(), receivedAttachmentsTranslationSelect)
+          }
+        }
+      },
+      "pièces jointes de réponse": {
+        panelElement: replyAttachmentsRephrasePanel,
+        feedbackElement: replyAttachmentsRephraseFeedback,
+        resultElement: replyAttachmentsRephraseResult,
+        workflow: "reply",
+        async getPayload() {
+          if ((!currentReplyAttachmentDescriptors || currentReplyAttachmentDescriptors.length === 0) && replyAttachments?.files?.length) {
+            currentReplyAttachmentDescriptors = await buildAttachmentDescriptorsFromInput(replyAttachments)
+          }
+          return {
+            attachments: pickSelectedAttachment(getCurrentReplyAttachments(), replyAttachmentsTranslationSelect)
+          }
+        }
       },
       "réponse au mail": {
         sourceElement: replyOutputMailContent,

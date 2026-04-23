@@ -598,7 +598,7 @@ async function handleGoogleMailboxCallback(req, res) {
 
     if (errorParam) {
       res.writeHead(302, {
-        Location: `/frontend/mail.html?mailbox=error&reason=${encodeURIComponent(errorParam)}`
+        Location: `/frontend/mailbox-connect.html?mailbox=error&reason=${encodeURIComponent(errorParam)}`
       })
       res.end()
       return
@@ -606,12 +606,12 @@ async function handleGoogleMailboxCallback(req, res) {
 
     const connection = await finalizeGoogleMailboxConnection(code, state)
     res.writeHead(302, {
-      Location: `/frontend/mail.html?mailbox=connected&connectionId=${encodeURIComponent(connection.id)}&email=${encodeURIComponent(connection.mailbox_email)}`
+      Location: `/frontend/mailbox-connect.html?mailbox=connected&connectionId=${encodeURIComponent(connection.id)}&email=${encodeURIComponent(connection.mailbox_email)}`
     })
     res.end()
   } catch (error) {
     res.writeHead(302, {
-      Location: `/frontend/mail.html?mailbox=error&reason=${encodeURIComponent(error.message || "Erreur OAuth Google")}`
+      Location: `/frontend/mailbox-connect.html?mailbox=error&reason=${encodeURIComponent(error.message || "Erreur OAuth Google")}`
     })
     res.end()
   }
