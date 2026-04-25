@@ -403,7 +403,6 @@
               <div class="mail-actions">
                 <button class="action-button hidden-panel" type="button" data-text-setting="translationActionsEnabled" data-text-action="translate" data-text-target="pièces jointes de création">Traduire</button>
                 <button class="action-button hidden-panel" type="button" data-text-setting="summaryActionsEnabled" data-text-action="summarize" data-text-target="pièces jointes de création">Résumer</button>
-                <button class="action-button hidden-panel" type="button" data-text-setting="rephraseActionsEnabled" data-text-action="rephrase" data-text-target="pièces jointes de création">Reformuler</button>
               </div>
               <input
                 id="creationAttachments"
@@ -458,25 +457,6 @@
                   <button class="mode-button" data-audio-stop type="button">Stop audio</button>
                 </div>
               </div>
-              <div id="creationAttachmentsRephrasePanel" class="suggestion-assistant hidden-panel" aria-hidden="true">
-                <div class="suggestion-assistant-header">
-                  <span class="editor-label">Reformulation</span>
-                  <p class="settings-help" id="creationAttachmentsRephraseFeedback">La reformulation des pièces jointes apparaîtra ici.</p>
-                </div>
-                <textarea
-                  id="creationAttachmentsRephraseResult"
-                  class="mail-textarea output-textarea protected-textarea"
-                  readonly
-                  placeholder="La reformulation des pièces jointes de création apparaîtra ici."
-                ></textarea>
-                <div class="audio-controls" data-audio-for="creationAttachmentsRephraseResult">
-                  <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
-                  <button class="mode-button" data-audio-play type="button">Lire</button>
-                  <button class="mode-button" data-audio-pause type="button">Pause</button>
-                  <button class="mode-button" data-audio-resume type="button">Reprendre</button>
-                  <button class="mode-button" data-audio-stop type="button">Stop audio</button>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -524,6 +504,22 @@
                 class="mail-textarea output-textarea"
                 placeholder="Le contenu du mail généré apparaîtra ici, avec possibilité de modification."
               ></textarea>
+              <div class="mail-actions">
+                <button class="action-button send-button" id="creationSendBtn" type="button">
+                  Valider l’envoi
+                  <span class="action-counter" id="creationSendCount">0</span>
+                </button>
+
+                <button class="action-button reject-button" id="creationRejectBtn" type="button">
+                  Rejet
+                  <span class="action-counter" id="creationRejectCount">0</span>
+                </button>
+
+                <button class="action-button delete-button" id="creationDeleteBtn" type="button">
+                  Suppression
+                  <span class="action-counter" id="creationDeleteCount">0</span>
+                </button>
+              </div>
               <div id="creationOutputTranslationPanel" class="suggestion-assistant hidden-panel" aria-hidden="true">
                 <div class="suggestion-assistant-header">
                   <span class="editor-label">Traduction</span>
@@ -535,6 +531,9 @@
                   readonly
                   placeholder="La traduction du contenu du mail apparaîtra ici."
                 ></textarea>
+                <div class="mail-actions">
+                  <button class="action-button" type="button" data-use-as-main-output="creationOutputMailContent" data-use-as-main-source="creationOutputTranslationResult">Affecter au mail</button>
+                </div>
                 <div class="audio-controls" data-audio-for="creationOutputTranslationResult">
                   <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
                   <button class="mode-button" data-audio-play type="button">Lire</button>
@@ -554,6 +553,9 @@
                   readonly
                   placeholder="Le résumé du contenu du mail apparaîtra ici."
                 ></textarea>
+                <div class="mail-actions">
+                  <button class="action-button" type="button" data-use-as-main-output="creationOutputMailContent" data-use-as-main-source="creationOutputSummaryResult">Affecter au mail</button>
+                </div>
                 <div class="audio-controls" data-audio-for="creationOutputSummaryResult">
                   <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
                   <button class="mode-button" data-audio-play type="button">Lire</button>
@@ -573,6 +575,9 @@
                   readonly
                   placeholder="La reformulation du contenu du mail de création apparaîtra ici."
                 ></textarea>
+                <div class="mail-actions">
+                  <button class="action-button" type="button" data-use-as-main-output="creationOutputMailContent" data-use-as-main-source="creationOutputRephraseResult">Affecter au mail</button>
+                </div>
                 <div class="audio-controls" data-audio-for="creationOutputRephraseResult">
                   <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
                   <button class="mode-button" data-audio-play type="button">Lire</button>
@@ -597,7 +602,6 @@
               <div class="mail-actions">
                 <button class="action-button hidden-panel" type="button" data-text-setting="translationActionsEnabled" data-text-action="translate" data-text-target="pièces jointes du mail de création">Traduire</button>
                 <button class="action-button hidden-panel" type="button" data-text-setting="summaryActionsEnabled" data-text-action="summarize" data-text-target="pièces jointes du mail de création">Résumer</button>
-                <button class="action-button hidden-panel" type="button" data-text-setting="rephraseActionsEnabled" data-text-action="rephrase" data-text-target="pièces jointes du mail de création">Reformuler</button>
               </div>
               <input
                 id="creationOutputAttachments"
@@ -652,42 +656,6 @@
                   <button class="mode-button" data-audio-stop type="button">Stop audio</button>
                 </div>
               </div>
-              <div id="creationOutputAttachmentsRephrasePanel" class="suggestion-assistant hidden-panel" aria-hidden="true">
-                <div class="suggestion-assistant-header">
-                  <span class="editor-label">Reformulation</span>
-                  <p class="settings-help" id="creationOutputAttachmentsRephraseFeedback">La reformulation des pièces jointes apparaîtra ici.</p>
-                </div>
-                <textarea
-                  id="creationOutputAttachmentsRephraseResult"
-                  class="mail-textarea output-textarea protected-textarea"
-                  readonly
-                  placeholder="La reformulation des pièces jointes du mail de création apparaîtra ici."
-                ></textarea>
-                <div class="audio-controls" data-audio-for="creationOutputAttachmentsRephraseResult">
-                  <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
-                  <button class="mode-button" data-audio-play type="button">Lire</button>
-                  <button class="mode-button" data-audio-pause type="button">Pause</button>
-                  <button class="mode-button" data-audio-resume type="button">Reprendre</button>
-                  <button class="mode-button" data-audio-stop type="button">Stop audio</button>
-                </div>
-              </div>
-            </div>
-
-            <div class="mail-actions">
-              <button class="action-button send-button" id="creationSendBtn" type="button">
-                Valider l’envoi
-                <span class="action-counter" id="creationSendCount">0</span>
-              </button>
-
-              <button class="action-button reject-button" id="creationRejectBtn" type="button">
-                Rejet
-                <span class="action-counter" id="creationRejectCount">0</span>
-              </button>
-
-              <button class="action-button delete-button" id="creationDeleteBtn" type="button">
-                Suppression
-                <span class="action-counter" id="creationDeleteCount">0</span>
-              </button>
             </div>
           </div>
         </div>
@@ -766,7 +734,6 @@
               <div class="mail-actions">
                 <button class="action-button hidden-panel" type="button" data-text-setting="translationActionsEnabled" data-text-action="translate" data-text-target="pièces jointes reçues">Traduire</button>
                 <button class="action-button hidden-panel" type="button" data-text-setting="summaryActionsEnabled" data-text-action="summarize" data-text-target="pièces jointes reçues">Résumer</button>
-                <button class="action-button hidden-panel" type="button" data-text-setting="rephraseActionsEnabled" data-text-action="rephrase" data-text-target="pièces jointes reçues">Reformuler</button>
               </div>
               <input
                 id="receivedAttachments"
@@ -814,25 +781,6 @@
                   placeholder="Le résumé des pièces jointes reçues apparaîtra ici."
                 ></textarea>
                 <div class="audio-controls" data-audio-for="receivedAttachmentsSummaryResult">
-                  <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
-                  <button class="mode-button" data-audio-play type="button">Lire</button>
-                  <button class="mode-button" data-audio-pause type="button">Pause</button>
-                  <button class="mode-button" data-audio-resume type="button">Reprendre</button>
-                  <button class="mode-button" data-audio-stop type="button">Stop audio</button>
-                </div>
-              </div>
-              <div id="receivedAttachmentsRephrasePanel" class="suggestion-assistant hidden-panel" aria-hidden="true">
-                <div class="suggestion-assistant-header">
-                  <span class="editor-label">Reformulation</span>
-                  <p class="settings-help" id="receivedAttachmentsRephraseFeedback">La reformulation des pièces jointes apparaîtra ici.</p>
-                </div>
-                <textarea
-                  id="receivedAttachmentsRephraseResult"
-                  class="mail-textarea output-textarea protected-textarea"
-                  readonly
-                  placeholder="La reformulation des pièces jointes reçues apparaîtra ici."
-                ></textarea>
-                <div class="audio-controls" data-audio-for="receivedAttachmentsRephraseResult">
                   <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
                   <button class="mode-button" data-audio-play type="button">Lire</button>
                   <button class="mode-button" data-audio-pause type="button">Pause</button>
@@ -894,6 +842,22 @@
                 class="mail-textarea output-textarea"
                 placeholder="La réponse générée apparaîtra ici, avec possibilité de modification."
               ></textarea>
+              <div class="mail-actions">
+                <button class="action-button send-button" id="replySendBtn" type="button">
+                  Valider l’envoi
+                  <span class="action-counter" id="replySendCount">0</span>
+                </button>
+
+                <button class="action-button reject-button" id="replyRejectBtn" type="button">
+                  Rejet
+                  <span class="action-counter" id="replyRejectCount">0</span>
+                </button>
+
+                <button class="action-button delete-button" id="replyDeleteBtn" type="button">
+                  Suppression
+                  <span class="action-counter" id="replyDeleteCount">0</span>
+                </button>
+              </div>
               <div id="replyOutputTranslationPanel" class="suggestion-assistant hidden-panel" aria-hidden="true">
                 <div class="suggestion-assistant-header">
                   <span class="editor-label">Traduction</span>
@@ -905,6 +869,9 @@
                   readonly
                   placeholder="La traduction de la réponse apparaîtra ici."
                 ></textarea>
+                <div class="mail-actions">
+                  <button class="action-button" type="button" data-use-as-main-output="replyOutputMailContent" data-use-as-main-source="replyOutputTranslationResult">Affecter à la réponse</button>
+                </div>
                 <div class="audio-controls" data-audio-for="replyOutputTranslationResult">
                   <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
                   <button class="mode-button" data-audio-play type="button">Lire</button>
@@ -924,6 +891,9 @@
                   readonly
                   placeholder="Le résumé de la réponse apparaîtra ici."
                 ></textarea>
+                <div class="mail-actions">
+                  <button class="action-button" type="button" data-use-as-main-output="replyOutputMailContent" data-use-as-main-source="replyOutputSummaryResult">Affecter à la réponse</button>
+                </div>
                 <div class="audio-controls" data-audio-for="replyOutputSummaryResult">
                   <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
                   <button class="mode-button" data-audio-play type="button">Lire</button>
@@ -943,6 +913,9 @@
                   readonly
                   placeholder="La reformulation de la réponse apparaîtra ici."
                 ></textarea>
+                <div class="mail-actions">
+                  <button class="action-button" type="button" data-use-as-main-output="replyOutputMailContent" data-use-as-main-source="replyOutputRephraseResult">Affecter à la réponse</button>
+                </div>
                 <div class="audio-controls" data-audio-for="replyOutputRephraseResult">
                   <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
                   <button class="mode-button" data-audio-play type="button">Lire</button>
@@ -967,7 +940,6 @@
               <div class="mail-actions">
                 <button class="action-button hidden-panel" type="button" data-text-setting="translationActionsEnabled" data-text-action="translate" data-text-target="pièces jointes de réponse">Traduire</button>
                 <button class="action-button hidden-panel" type="button" data-text-setting="summaryActionsEnabled" data-text-action="summarize" data-text-target="pièces jointes de réponse">Résumer</button>
-                <button class="action-button hidden-panel" type="button" data-text-setting="rephraseActionsEnabled" data-text-action="rephrase" data-text-target="pièces jointes de réponse">Reformuler</button>
               </div>
               <input
                 id="replyAttachments"
@@ -995,6 +967,9 @@
                   readonly
                   placeholder="La traduction des pièces jointes de réponse apparaîtra ici."
                 ></textarea>
+                <div class="mail-actions">
+                  <button class="action-button" type="button" data-use-as-main-output="replyOutputMailContent" data-use-as-main-source="replyAttachmentsTranslationResult">Affecter à la réponse</button>
+                </div>
                 <div class="audio-controls" data-audio-for="replyAttachmentsTranslationResult">
                   <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
                   <button class="mode-button" data-audio-play type="button">Lire</button>
@@ -1014,6 +989,9 @@
                   readonly
                   placeholder="Le résumé des pièces jointes de réponse apparaîtra ici."
                 ></textarea>
+                <div class="mail-actions">
+                  <button class="action-button" type="button" data-use-as-main-output="replyOutputMailContent" data-use-as-main-source="replyAttachmentsSummaryResult">Affecter à la réponse</button>
+                </div>
                 <div class="audio-controls" data-audio-for="replyAttachmentsSummaryResult">
                   <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
                   <button class="mode-button" data-audio-play type="button">Lire</button>
@@ -1022,42 +1000,6 @@
                   <button class="mode-button" data-audio-stop type="button">Stop audio</button>
                 </div>
               </div>
-              <div id="replyAttachmentsRephrasePanel" class="suggestion-assistant hidden-panel" aria-hidden="true">
-                <div class="suggestion-assistant-header">
-                  <span class="editor-label">Reformulation</span>
-                  <p class="settings-help" id="replyAttachmentsRephraseFeedback">La reformulation des pièces jointes apparaîtra ici.</p>
-                </div>
-                <textarea
-                  id="replyAttachmentsRephraseResult"
-                  class="mail-textarea output-textarea protected-textarea"
-                  readonly
-                  placeholder="La reformulation des pièces jointes de réponse apparaîtra ici."
-                ></textarea>
-                <div class="audio-controls" data-audio-for="replyAttachmentsRephraseResult">
-                  <button class="audio-toggle-button audio-off" data-audio-toggle type="button" aria-pressed="false" title="Activer ou désactiver le son">🔊</button>
-                  <button class="mode-button" data-audio-play type="button">Lire</button>
-                  <button class="mode-button" data-audio-pause type="button">Pause</button>
-                  <button class="mode-button" data-audio-resume type="button">Reprendre</button>
-                  <button class="mode-button" data-audio-stop type="button">Stop audio</button>
-                </div>
-              </div>
-            </div>
-
-            <div class="mail-actions">
-              <button class="action-button send-button" id="replySendBtn" type="button">
-                Valider l’envoi
-                <span class="action-counter" id="replySendCount">0</span>
-              </button>
-
-              <button class="action-button reject-button" id="replyRejectBtn" type="button">
-                Rejet
-                <span class="action-counter" id="replyRejectCount">0</span>
-              </button>
-
-              <button class="action-button delete-button" id="replyDeleteBtn" type="button">
-                Suppression
-                <span class="action-counter" id="replyDeleteCount">0</span>
-              </button>
             </div>
           </div>
         </div>

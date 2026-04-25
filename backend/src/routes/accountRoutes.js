@@ -33,6 +33,8 @@ const {
   normalizeUserPreferences,
   mergeUserPreferences
 } = require("../services/userPreferencesService")
+const { validateHumanVerification } = require("../services/humanVerificationService")
+const { enforceSecurityRateLimit, recordSecurityEvent } = require("../services/securityService")
 const SESSION_COOKIE_NAME = "mail_assistant_session"
 
 function hashPassword(password) {
@@ -344,6 +346,13 @@ function collectBillingDashboard(sessionPayload, options = {}) {
 async function handleAccountRequest(req, res, body) {
   try {
     const payload = JSON.parse(body || "{}")
+    if (!enforceSecurityRateLimit(req, res, payload, {
+      ruleName: "account_request",
+      eventType: "account_request_attempt",
+      route: "/api/account/request"
+    })) {
+      return
+    }
     const result = await createAccountRequest(payload)
 
     res.writeHead(200, {
@@ -454,6 +463,25 @@ async function handleAccountStatus(req, res) {
 async function handleAccountLogin(req, res, body) {
   try {
     const payload = JSON.parse(body || "{}")
+    if (!enforceSecurityRateLimit(req, res, payload, {
+      ruleName: "account_login",
+      eventType: "account_login_attempt",
+      route: "/api/account/login"
+    })) {
+      return
+    }
+    const humanValidation = await validateHumanVerification(payload, {
+      remoteIp: req.socket?.remoteAddress || ""
+    })
+    if (!humanValidation.ok) {
+      res.writeHead(400, { "Content-Type": "application/json" })
+      res.end(JSON.stringify({
+        ok: false,
+        error: humanValidation.message || "Vérification humaine invalide."
+      }))
+      return
+    }
+
     const email = payload.email?.trim().toLowerCase() || ""
     const accountType = payload.accountType?.trim() || ""
     const password = payload.password || ""
@@ -520,6 +548,13 @@ async function handleAccountLogin(req, res, body) {
 
     closeUserSessionsForAccount(detailedAccount.id)
     const session = createUserSession(detailedAccount)
+    recordSecurityEvent(req, payload, {
+      eventType: "account_login_attempt",
+      severity: "info",
+      status: "success",
+      route: "/api/account/login",
+      actorId: detailedAccount.id
+    })
 
     res.writeHead(200, {
       "Content-Type": "application/json",
@@ -621,6 +656,25 @@ async function handleAccountLogout(req, res) {
 async function handleForgotPassword(req, res, body) {
   try {
     const payload = JSON.parse(body || "{}")
+    if (!enforceSecurityRateLimit(req, res, payload, {
+      ruleName: "password_action",
+      eventType: "account_forgot_password_attempt",
+      route: "/api/account/forgot-password"
+    })) {
+      return
+    }
+    const humanValidation = await validateHumanVerification(payload, {
+      remoteIp: req.socket?.remoteAddress || ""
+    })
+    if (!humanValidation.ok) {
+      res.writeHead(400, { "Content-Type": "application/json" })
+      res.end(JSON.stringify({
+        ok: false,
+        error: humanValidation.message || "Vérification humaine invalide."
+      }))
+      return
+    }
+
     const email = payload.email?.trim().toLowerCase() || ""
     const accountType = payload.accountType?.trim() || ""
 
@@ -703,6 +757,13 @@ async function handleForgotPassword(req, res, body) {
 async function handleResetPassword(req, res, body) {
   try {
     const payload = JSON.parse(body || "{}")
+    if (!enforceSecurityRateLimit(req, res, payload, {
+      ruleName: "password_action",
+      eventType: "account_reset_password_attempt",
+      route: "/api/account/reset-password"
+    })) {
+      return
+    }
     const token = payload.token?.trim() || ""
     const newPassword = payload.newPassword || ""
 
@@ -806,6 +867,25 @@ async function handleResetPassword(req, res, body) {
 async function handleChangePassword(req, res, body) {
   try {
     const payload = JSON.parse(body || "{}")
+    if (!enforceSecurityRateLimit(req, res, payload, {
+      ruleName: "password_action",
+      eventType: "account_change_password_attempt",
+      route: "/api/account/change-password"
+    })) {
+      return
+    }
+    const humanValidation = await validateHumanVerification(payload, {
+      remoteIp: req.socket?.remoteAddress || ""
+    })
+    if (!humanValidation.ok) {
+      res.writeHead(400, { "Content-Type": "application/json" })
+      res.end(JSON.stringify({
+        ok: false,
+        error: humanValidation.message || "Vérification humaine invalide."
+      }))
+      return
+    }
+
     const email = payload.email?.trim().toLowerCase() || ""
     const accountType = payload.accountType?.trim() || ""
     const currentPassword = payload.currentPassword || ""

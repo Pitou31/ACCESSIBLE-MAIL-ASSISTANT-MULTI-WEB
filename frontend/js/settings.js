@@ -475,6 +475,14 @@ function getProviderUiConfig(providerType) {
       saveButtonId: "mistralSaveProviderBtn",
       testButtonId: "mistralTestProviderBtn",
       label: "Mistral API"
+    },
+    "together-api": {
+      inputId: "togetherApiKeyInput",
+      defaultToggleId: "togetherDefaultToggle",
+      feedbackId: "togetherProviderFeedback",
+      saveButtonId: "togetherSaveProviderBtn",
+      testButtonId: "togetherTestProviderBtn",
+      label: "Together API"
     }
   }
 
@@ -487,7 +495,7 @@ function renderProviderFeedback(providerType, message, tone = "info") {
 }
 
 function renderProviderAccounts(providers = []) {
-  const providerTypes = ["deepgram", "assemblyai", "deepseek-api", "mistral-api"]
+  const providerTypes = ["deepgram", "assemblyai", "deepseek-api", "mistral-api", "together-api"]
 
   providerTypes.forEach((providerType) => {
     const config = getProviderUiConfig(providerType)
@@ -559,6 +567,9 @@ function getPreferredTextProviderType() {
   if (document.getElementById("mistralDefaultToggle")?.checked) {
     return "mistral-api"
   }
+  if (document.getElementById("togetherDefaultToggle")?.checked) {
+    return "together-api"
+  }
   if (document.getElementById("deepseekDefaultToggle")?.checked) {
     return "deepseek-api"
   }
@@ -568,12 +579,25 @@ function getPreferredTextProviderType() {
 function syncExclusiveTextProviderToggles(selectedProviderType = "") {
   const deepseekToggle = document.getElementById("deepseekDefaultToggle")
   const mistralToggle = document.getElementById("mistralDefaultToggle")
+  const togetherToggle = document.getElementById("togetherDefaultToggle")
 
   if (selectedProviderType === "deepseek-api" && mistralToggle) {
     mistralToggle.checked = false
   }
+  if (selectedProviderType === "deepseek-api" && togetherToggle) {
+    togetherToggle.checked = false
+  }
   if (selectedProviderType === "mistral-api" && deepseekToggle) {
     deepseekToggle.checked = false
+  }
+  if (selectedProviderType === "mistral-api" && togetherToggle) {
+    togetherToggle.checked = false
+  }
+  if (selectedProviderType === "together-api" && deepseekToggle) {
+    deepseekToggle.checked = false
+  }
+  if (selectedProviderType === "together-api" && mistralToggle) {
+    mistralToggle.checked = false
   }
 }
 
@@ -1022,6 +1046,12 @@ function updatePreviewStatusBadge(settings) {
 function formatModelLabel(model) {
   const labels = {
     "mistral-api": "Mistral API",
+    "together-api": "Together éco - LFM2 24B",
+    "together-lfm2-24b": "Together éco - LFM2 24B",
+    "together-llama-3-8b-lite": "Together éco - Llama 3 8B Lite",
+    "together-gemma-3n-e4b": "Together éco - Gemma 3N E4B",
+    "together-qwen-3-5-9b": "Together éco - Qwen 3.5 9B",
+    "together-gpt-oss-20b": "Together éco - GPT OSS 20B",
     "deepseek-chat": "DeepSeek chat",
     "deepseek-reasoner": "DeepSeek reasoner"
   }
@@ -2201,6 +2231,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("mistralTestProviderBtn")?.addEventListener("click", () => {
     testProviderAccount("mistral-api")
   })
+  document.getElementById("togetherSaveProviderBtn")?.addEventListener("click", () => {
+    saveProviderAccount("together-api")
+  })
+  document.getElementById("togetherTestProviderBtn")?.addEventListener("click", () => {
+    testProviderAccount("together-api")
+  })
   document.getElementById("deepseekDefaultToggle")?.addEventListener("change", (event) => {
     if (event.target?.checked) {
       syncExclusiveTextProviderToggles("deepseek-api")
@@ -2210,6 +2246,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("mistralDefaultToggle")?.addEventListener("change", (event) => {
     if (event.target?.checked) {
       syncExclusiveTextProviderToggles("mistral-api")
+    }
+    handleSettingsChange()
+  })
+  document.getElementById("togetherDefaultToggle")?.addEventListener("change", (event) => {
+    if (event.target?.checked) {
+      syncExclusiveTextProviderToggles("together-api")
     }
     handleSettingsChange()
   })

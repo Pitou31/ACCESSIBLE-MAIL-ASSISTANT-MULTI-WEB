@@ -20,6 +20,7 @@ const {
   updateAccountPassword,
   deleteAccountPermanently,
   getAccountById,
+  listSecurityEvents,
   getPriorityRulesConfig,
   setPriorityRulesConfig,
   updateMailboxResource
@@ -27,6 +28,7 @@ const {
 const { sendTextMail } = require("../services/mailService")
 const { validateEmailAddress } = require("../services/emailValidationService")
 const { validateHumanVerification } = require("../services/humanVerificationService")
+const { enforceSecurityRateLimit, recordSecurityEvent } = require("../services/securityService")
 const { getSessionPayloadFromRequest } = require("./accountRoutes")
 const SESSION_COOKIE_NAME = "mail_assistant_session"
 const DEFAULT_AI_TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS || 30000)
@@ -294,6 +296,13 @@ async function handleAdminLogin(req, res, body) {
     const payload = JSON.parse(body || "{}")
     const email = payload.email?.trim().toLowerCase() || ""
     const password = payload.password || ""
+    if (!enforceSecurityRateLimit(req, res, payload, {
+      ruleName: "admin_login",
+      eventType: "admin_login_attempt",
+      route: "/api/admin/login"
+    })) {
+      return
+    }
     const humanValidation = await validateHumanVerification(payload, {
       remoteIp: req.socket?.remoteAddress || ""
     })
@@ -357,6 +366,13 @@ async function handleAdminLogin(req, res, body) {
 
     closeUserSessionsForAccount(adminAccount.id)
     const session = createUserSession(adminAccount)
+    recordSecurityEvent(req, payload, {
+      eventType: "admin_login_attempt",
+      severity: "info",
+      status: "success",
+      route: "/api/admin/login",
+      actorId: adminAccount.id
+    })
 
     res.writeHead(200, {
       "Content-Type": "application/json",
@@ -397,6 +413,13 @@ async function handleAdminChangePassword(req, res, body) {
     const payload = JSON.parse(body || "{}")
     const currentPassword = payload.currentPassword || ""
     const newPassword = payload.newPassword || ""
+    if (!enforceSecurityRateLimit(req, res, payload, {
+      ruleName: "password_action",
+      eventType: "admin_password_change_attempt",
+      route: "/api/admin/change-password"
+    })) {
+      return
+    }
     const humanValidation = await validateHumanVerification(payload, {
       remoteIp: req.socket?.remoteAddress || ""
     })
@@ -466,6 +489,14 @@ async function handleAdminChangePassword(req, res, body) {
 
 async function handleAdminForgotPassword(req, res, body) {
   try {
+    const payload = JSON.parse(body || "{}")
+    if (!enforceSecurityRateLimit(req, res, payload, {
+      ruleName: "password_action",
+      eventType: "admin_forgot_password_blocked",
+      route: "/api/admin/forgot-password"
+    })) {
+      return
+    }
     res.writeHead(403, { "Content-Type": "application/json" })
     res.end(JSON.stringify({
       ok: false,
@@ -519,6 +550,13 @@ async function handleAdminBootstrap(req, res, body) {
     }
 
     const payload = JSON.parse(body || "{}")
+    if (!enforceSecurityRateLimit(req, res, payload, {
+      ruleName: "admin_request",
+      eventType: "admin_bootstrap_attempt",
+      route: "/api/admin/bootstrap"
+    })) {
+      return
+    }
     const firstName = payload.firstName?.trim() || ""
     const lastName = payload.lastName?.trim() || ""
     const email = payload.email?.trim().toLowerCase() || ""
@@ -594,14 +632,26 @@ async function handleAdminBootstrap(req, res, body) {
 }
 
 async function handleAdminCreate(req, res, body) {
+  const sessionPayload = requireAdminSession(req, res)
+  if (!sessionPayload) {
+    return
+  }
+
   try {
     const payload = JSON.parse(body || "{}")
+    if (!enforceSecurityRateLimit(req, res, payload, {
+      ruleName: "admin_mutation",
+      eventType: "admin_create_attempt",
+      route: "/api/admin/create"
+    })) {
+      return
+    }
     const firstName = payload.firstName?.trim() || ""
     const lastName = payload.lastName?.trim() || ""
     const email = payload.email?.trim().toLowerCase() || ""
     const password = payload.password || ""
     const phone = payload.phone?.trim() || ""
-    const reviewedBy = payload.reviewedBy?.trim() || "admin-manuel"
+    const reviewedBy = sessionPayload.account.email || payload.reviewedBy?.trim() || "admin-manuel"
 
     const issues = []
     if (!firstName) issues.push("Le prénom est requis.")
@@ -692,6 +742,13 @@ async function handleAdminCreate(req, res, body) {
 async function handleAdminRequest(req, res, body) {
   try {
     const payload = JSON.parse(body || "{}")
+    if (!enforceSecurityRateLimit(req, res, payload, {
+      ruleName: "admin_request",
+      eventType: "admin_request_attempt",
+      route: "/api/admin/request"
+    })) {
+      return
+    }
     const firstName = payload.firstName?.trim() || ""
     const lastName = payload.lastName?.trim() || ""
     const email = payload.email?.trim().toLowerCase() || ""
@@ -911,6 +968,49 @@ async function handleAdminMailboxResourcesList(req, res) {
     res.end(JSON.stringify({
       ok: false,
       error: error.message || "Erreur de lecture des boîtes mail."
+    }))
+  }
+}
+
+async function handleAdminSecurityEventsList(req, res) {
+  const sessionPayload = requireAdminSession(req, res)
+  if (!sessionPayload) {
+    return
+  }
+
+  if (!isSuperAdminAccount(sessionPayload.account)) {
+    res.writeHead(403, { "Content-Type": "application/json" })
+    res.end(JSON.stringify({
+      ok: false,
+      error: "Accès super administrateur requis pour consulter le journal de sécurité."
+    }))
+    return
+  }
+
+  try {
+    const url = new URL(req.url, "http://localhost")
+    const email = url.searchParams.get("email")?.trim().toLowerCase() || ""
+    const status = url.searchParams.get("status")?.trim() || ""
+    const eventType = url.searchParams.get("eventType")?.trim() || ""
+    const limit = Number(url.searchParams.get("limit") || 100)
+
+    const events = listSecurityEvents({
+      email,
+      status,
+      eventType,
+      limit
+    })
+
+    res.writeHead(200, { "Content-Type": "application/json" })
+    res.end(JSON.stringify({
+      ok: true,
+      events
+    }))
+  } catch (error) {
+    res.writeHead(500, { "Content-Type": "application/json" })
+    res.end(JSON.stringify({
+      ok: false,
+      error: error.message || "Erreur de lecture du journal de sécurité."
     }))
   }
 }
@@ -1314,11 +1414,23 @@ function isProtectedAdminAccount(account) {
 }
 
 async function handleAdminRequestStatusUpdate(req, res, body) {
+  const sessionPayload = requireAdminSession(req, res)
+  if (!sessionPayload) {
+    return
+  }
+
   try {
     const payload = JSON.parse(body || "{}")
+    if (!enforceSecurityRateLimit(req, res, payload, {
+      ruleName: "admin_mutation",
+      eventType: "admin_request_status_attempt",
+      route: "/api/admin/request-status"
+    })) {
+      return
+    }
     const requestId = payload.requestId?.trim() || ""
     const status = payload.status?.trim() || ""
-    const reviewedBy = payload.reviewedBy?.trim() || "admin-manuel"
+    const reviewedBy = sessionPayload.account.email || payload.reviewedBy?.trim() || "admin-manuel"
     const adminNotes = payload.adminNotes?.trim() || ""
     const requestedAdditionalInfo = payload.requestedAdditionalInfo?.trim() || ""
     const productVersion = payload.productVersion?.trim() || "base"
@@ -1389,11 +1501,23 @@ async function handleAdminRequestStatusUpdate(req, res, body) {
 }
 
 async function handleAdminAccountStatusUpdate(req, res, body) {
+  const sessionPayload = requireAdminSession(req, res)
+  if (!sessionPayload) {
+    return
+  }
+
   try {
     const payload = JSON.parse(body || "{}")
+    if (!enforceSecurityRateLimit(req, res, payload, {
+      ruleName: "admin_mutation",
+      eventType: "admin_account_status_attempt",
+      route: "/api/admin/account-status"
+    })) {
+      return
+    }
     const accountId = payload.accountId?.trim() || ""
     const status = payload.status?.trim() || ""
-    const reviewedBy = payload.reviewedBy?.trim() || "admin-manuel"
+    const reviewedBy = sessionPayload.account.email || payload.reviewedBy?.trim() || "admin-manuel"
     const adminNotes = payload.adminNotes?.trim() || ""
     const productVersion = payload.productVersion?.trim() || "base"
     const temporaryPassword = payload.temporaryPassword || ""
@@ -1463,10 +1587,22 @@ async function handleAdminAccountStatusUpdate(req, res, body) {
 }
 
 async function handleAdminPasswordReset(req, res, body) {
+  const sessionPayload = requireAdminSession(req, res)
+  if (!sessionPayload) {
+    return
+  }
+
   try {
     const payload = JSON.parse(body || "{}")
+    if (!enforceSecurityRateLimit(req, res, payload, {
+      ruleName: "password_action",
+      eventType: "admin_password_reset_attempt",
+      route: "/api/admin/password-reset"
+    })) {
+      return
+    }
     const accountId = payload.accountId?.trim() || ""
-    const reviewedBy = payload.reviewedBy?.trim() || "admin-manuel"
+    const reviewedBy = sessionPayload.account.email || payload.reviewedBy?.trim() || "admin-manuel"
     const temporaryPassword = payload.temporaryPassword || ""
 
     if (!accountId || !temporaryPassword || temporaryPassword.length < 10) {
@@ -1530,10 +1666,22 @@ async function handleAdminPasswordReset(req, res, body) {
 }
 
 async function handleAdminAccountDelete(req, res, body) {
+  const sessionPayload = requireAdminSession(req, res)
+  if (!sessionPayload) {
+    return
+  }
+
   try {
     const payload = JSON.parse(body || "{}")
+    if (!enforceSecurityRateLimit(req, res, payload, {
+      ruleName: "admin_mutation",
+      eventType: "admin_account_delete_attempt",
+      route: "/api/admin/account-delete"
+    })) {
+      return
+    }
     const accountId = payload.accountId?.trim() || ""
-    const reviewedBy = payload.reviewedBy?.trim() || "admin-manuel"
+    const reviewedBy = sessionPayload.account.email || payload.reviewedBy?.trim() || "admin-manuel"
     const adminNotes = payload.adminNotes?.trim() || ""
 
     if (!accountId) {
@@ -1626,6 +1774,7 @@ module.exports = {
   handleAdminRequestsList,
   handleAdminAccountsList,
   handleAdminMailboxResourcesList,
+  handleAdminSecurityEventsList,
   handleAdminMailRulesList,
   handleAdminMailRuleCreate,
   handleAdminMailRuleUpdate,

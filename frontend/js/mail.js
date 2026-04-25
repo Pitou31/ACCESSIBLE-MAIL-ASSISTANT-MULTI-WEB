@@ -585,7 +585,7 @@ function buildAttachmentSelectOptions(selectElement, attachments = [], panelElem
     return
   }
 
-  selectElement.disabled = normalizedAttachments.length <= 1
+  selectElement.disabled = false
   if (previousValue && normalizedAttachments[Number(previousValue)]) {
     selectElement.value = previousValue
     return
@@ -2511,21 +2511,22 @@ function getSelectedLlm(options = {}) {
 }
 
 function getSelectedLanguage() {
-  const storedLanguage = getStoredUiValue(SELECTED_LANGUAGE_STORAGE_KEY).trim()
-  if (storedLanguage) {
-    return storedLanguage
+  const visibleLanguage = languageSelect?.value || languageSelectBottom?.value || ""
+  if (visibleLanguage) {
+    return visibleLanguage
   }
 
-  return languageSelect?.value || languageSelectBottom?.value || "fr"
+  const storedLanguage = getStoredUiValue(SELECTED_LANGUAGE_STORAGE_KEY).trim()
+  return storedLanguage || "fr"
 }
 
 const INPUT_LANGUAGE_HINTS = {
-  fr: ["bonjour", "merci", "veuillez", "cordialement", "demande", "message", "pièce", "rendez-vous", "service", "confirmation", "document"],
-  en: ["hello", "please", "thanks", "thank", "regards", "appointment", "document", "message", "request", "confirm", "service"],
-  es: ["hola", "gracias", "por favor", "mensaje", "solicitud", "cita", "confirmar", "documento", "servicio"],
-  de: ["hallo", "danke", "bitte", "nachricht", "anfrage", "termin", "dokument", "bestaetigung", "bestätigung", "service", "auf deutsch", "deutsch", "audiolesetest", "dies ist"],
-  it: ["ciao", "buongiorno", "grazie", "prego", "messaggio", "richiesta", "appuntamento", "documento", "confermare", "servizio"],
-  nl: ["hallo", "dank", "alstublieft", "bericht", "verzoek", "afspraak", "document", "bevestiging", "service", "dit is", "een", "het", "nederlands", "audiotest"],
+  fr: ["bonjour", "madame", "monsieur", "merci", "veuillez", "cordialement", "bien cordialement", "demande", "message", "pièce", "rendez-vous", "service", "confirmation", "document", "je vous prie", "suite à", "nous vous"],
+  en: ["hello", "dear", "sir", "madam", "please", "thanks", "thank", "regards", "best regards", "kind regards", "appointment", "document", "message", "request", "confirm", "confirmation", "service", "following", "we would", "i would", "sincerely"],
+  es: ["hola", "estimado", "estimada", "señor", "señora", "gracias", "por favor", "atentamente", "saludos", "mensaje", "solicitud", "cita", "confirmar", "confirmación", "documento", "servicio", "le informamos"],
+  de: ["hallo", "sehr geehrte", "sehr geehrter", "danke", "bitte", "mit freundlichen grüßen", "freundliche grüße", "nachricht", "anfrage", "termin", "dokument", "bestaetigung", "bestätigung", "service", "auf deutsch", "deutsch", "audiolesetest", "dies ist"],
+  it: ["ciao", "buongiorno", "gentile", "signore", "signora", "grazie", "prego", "cordiali saluti", "distinti saluti", "messaggio", "richiesta", "appuntamento", "documento", "confermare", "conferma", "servizio"],
+  nl: ["hallo", "geachte", "beste", "dank", "bedankt", "alstublieft", "met vriendelijke groet", "bericht", "verzoek", "afspraak", "document", "bevestiging", "service", "dit is", "een", "het", "nederlands", "audiotest"],
   ar: ["مرحبا", "شكرا", "شكراً", "من فضلك", "رسالة", "موعد", "مستند", "خدمة", "تأكيد"]
 }
 
@@ -2534,6 +2535,34 @@ function normalizeLanguageSample(value = "") {
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
     .toLowerCase()
+}
+
+function detectExplicitLanguageLabel(text = "") {
+  const normalized = normalizeLanguageSample(text)
+  const match = normalized.match(/(?:^|[-–—•\s])(?:en|in|auf|em|in lingua)\s+(francais|french|anglais|english|espagnol|spanish|allemand|german|deutsch|italien|italian|neerlandais|dutch|arabe|arabic)\s*:/i)
+  if (!match) {
+    return ""
+  }
+
+  const label = match[1]
+  const labelToLanguage = {
+    francais: "fr",
+    french: "fr",
+    anglais: "en",
+    english: "en",
+    espagnol: "es",
+    spanish: "es",
+    allemand: "de",
+    german: "de",
+    deutsch: "de",
+    italien: "it",
+    italian: "it",
+    neerlandais: "nl",
+    dutch: "nl",
+    arabe: "ar",
+    arabic: "ar"
+  }
+  return labelToLanguage[label] || ""
 }
 
 function detectInputContentLanguageDetailed(text = "", fallback = getSelectedLanguage()) {
@@ -2640,6 +2669,11 @@ function detectReliableGlobalInputLanguage(text = "", fallback = getSelectedLang
 }
 
 function detectSegmentInputLanguage(segmentText = "", fallback = "", segmentIndex = 0, segments = [], previousLanguage = "") {
+  const explicitLanguage = detectExplicitLanguageLabel(segmentText)
+  if (explicitLanguage) {
+    return explicitLanguage
+  }
+
   const direct = detectInputContentLanguageDetailed(segmentText, "")
   if (direct.score > 0) {
     return direct.language
@@ -2654,6 +2688,23 @@ function getCreationPromptInputLanguage() {
 
 function getReceivedMailInputLanguage() {
   return detectReliableGlobalInputLanguage(receivedMailContent?.value || "", "fr")
+}
+
+function getTextareaDetectedLanguage(textareaId, fallback = getSelectedLanguage()) {
+  const textarea = document.getElementById(textareaId)
+  return detectReliableGlobalInputLanguage(textarea?.value || "", fallback)
+}
+
+function getMailAudioLanguageForBlock(textareaId, fallback = getSelectedLanguage()) {
+  if (textareaId === "creationPrompt") {
+    return getCreationPromptInputLanguage()
+  }
+
+  if (textareaId === "receivedMailContent") {
+    return getReceivedMailInputLanguage()
+  }
+
+  return getTextareaDetectedLanguage(textareaId, fallback)
 }
 
 function formatDetectedLanguageLabel(language = "") {
@@ -2990,6 +3041,34 @@ function bindSuggestionAssistant(textarea, container, mode = "reply") {
 function refreshAllSuggestionAssistants() {
   renderSuggestionChips(creationOutputSuggestions, creationOutputMailContent, "creation")
   renderSuggestionChips(replyOutputSuggestions, replyOutputMailContent, "reply")
+}
+
+function applyDerivedOutputToMain(button) {
+  const sourceId = button?.getAttribute("data-use-as-main-source") || ""
+  const targetId = button?.getAttribute("data-use-as-main-output") || ""
+  const sourceElement = document.getElementById(sourceId)
+  const targetElement = document.getElementById(targetId)
+  const nextText = String(sourceElement?.value || "").trim()
+  const workflow = targetId === "replyOutputMailContent" ? "reply" : "creation"
+
+  if (!sourceElement || !targetElement || !nextText) {
+    setTextAssistWorkflowFeedback(workflow, "Aucun contenu disponible à affecter.", "error")
+    return
+  }
+
+  targetElement.value = nextText
+  targetElement.dispatchEvent(new Event("input", { bubbles: true }))
+  targetElement.focus()
+  targetElement.setSelectionRange(0, 0)
+  targetElement.scrollTop = 0
+
+  if (targetId === "creationOutputMailContent") {
+    persistUiValue(CREATION_DRAFT_STORAGE_KEY, nextText)
+    setGenerationFeedback("Le contenu sélectionné remplace maintenant le mail principal.", "success")
+    return
+  }
+
+  setReplyGenerationFeedback("Le contenu sélectionné remplace maintenant la réponse principale.", "success")
 }
 
 function applyPredictiveDictionaryVisibility() {
@@ -4053,6 +4132,12 @@ receivedAttachments?.addEventListener("change", handleReceivedAttachmentsPreview
 replyAttachments?.addEventListener("change", handleReplyAttachmentsCapture)
 
 document.addEventListener("click", (event) => {
+  const useAsMainButton = event.target.closest("[data-use-as-main-output][data-use-as-main-source]")
+  if (useAsMainButton) {
+    applyDerivedOutputToMain(useAsMainButton)
+    return
+  }
+
   const audioControls = event.target.closest("[data-audio-for]")
   if (audioControls) {
     const targetId = audioControls.getAttribute("data-audio-for") || ""
@@ -4112,8 +4197,37 @@ mailboxMessagesList?.addEventListener("click", (event) => {
   openInboxMessage(button.getAttribute("data-mailbox-open"))
 })
 
+const DETECTED_AUDIO_READER_OPTIONS = { useDetectedLanguage: true }
+
+const MAIL_AUDIO_READER_CONFIGS = [
+  ["creationPrompt", { useDetectedLanguage: true, fallbackLanguage: () => "fr" }],
+  ["creationPromptTranslationResult", DETECTED_AUDIO_READER_OPTIONS],
+  ["creationPromptSummaryResult"],
+  ["creationPromptRephraseResult"],
+  ["creationAttachmentsTranslationResult", DETECTED_AUDIO_READER_OPTIONS],
+  ["creationAttachmentsSummaryResult"],
+  ["creationOutputMailContent", DETECTED_AUDIO_READER_OPTIONS],
+  ["creationOutputTranslationResult", DETECTED_AUDIO_READER_OPTIONS],
+  ["creationOutputSummaryResult"],
+  ["creationOutputRephraseResult"],
+  ["creationOutputAttachmentsTranslationResult", DETECTED_AUDIO_READER_OPTIONS],
+  ["creationOutputAttachmentsSummaryResult"],
+  ["receivedMailContent", { useDetectedLanguage: true, fallbackLanguage: () => "fr" }],
+  ["receivedMailTranslationResult", DETECTED_AUDIO_READER_OPTIONS],
+  ["receivedMailSummaryResult"],
+  ["receivedAttachmentsTranslationResult", DETECTED_AUDIO_READER_OPTIONS],
+  ["receivedAttachmentsSummaryResult"],
+  ["replyOutputMailContent", DETECTED_AUDIO_READER_OPTIONS],
+  ["replyOutputTranslationResult", DETECTED_AUDIO_READER_OPTIONS],
+  ["replyOutputSummaryResult"],
+  ["replyOutputRephraseResult"],
+  ["replyAttachmentsTranslationResult", DETECTED_AUDIO_READER_OPTIONS],
+  ["replyAttachmentsSummaryResult"]
+]
+
 function createMailAudioReader(textareaId, {
-  getLanguage,
+  fallbackLanguage = () => getSelectedLanguage(),
+  useDetectedLanguage = false,
   readingStrategy = "selected-language"
 } = {}) {
   if (!window.MailAudioReader) {
@@ -4121,10 +4235,15 @@ function createMailAudioReader(textareaId, {
   }
 
   const resolveLanguage = () => {
-    if (typeof getLanguage === "function") {
-      return getLanguage()
+    const fallback = typeof fallbackLanguage === "function"
+      ? fallbackLanguage()
+      : fallbackLanguage
+
+    if (useDetectedLanguage) {
+      return getMailAudioLanguageForBlock(textareaId, fallback || getSelectedLanguage())
     }
-    return getSelectedLanguage()
+
+    return fallback || getSelectedLanguage()
   }
 
   return window.MailAudioReader.create(textareaId, {
@@ -4139,76 +4258,14 @@ function createMailAudioReader(textareaId, {
 }
 
 if (window.MailAudioReader) {
-  createMailAudioReader("creationPrompt", {
-    getLanguage: () => getCreationPromptInputLanguage(),
-    readingStrategy: "segment-detection"
-  })
-  createMailAudioReader("creationPromptTranslationResult", {
-    getLanguage: () => getSelectedLanguage()
-  })
-  createMailAudioReader("creationPromptSummaryResult", {
-    getLanguage: () => getSelectedLanguage()
-  })
-  createMailAudioReader("creationPromptRephraseResult", {
-    getLanguage: () => getSelectedLanguage()
-  })
-  createMailAudioReader("creationAttachmentsTranslationResult", {
-    getLanguage: () => getSelectedLanguage()
-  })
-  createMailAudioReader("creationAttachmentsSummaryResult", {
-    getLanguage: () => getSelectedLanguage()
-  })
-  createMailAudioReader("creationOutputMailContent", {
-    getLanguage: () => getSelectedLanguage()
-  })
-  createMailAudioReader("creationOutputTranslationResult", {
-    getLanguage: () => getSelectedLanguage()
-  })
-  createMailAudioReader("creationOutputSummaryResult", {
-    getLanguage: () => getSelectedLanguage()
-  })
-  createMailAudioReader("creationOutputRephraseResult", {
-    getLanguage: () => getSelectedLanguage()
-  })
-  createMailAudioReader("creationOutputAttachmentsTranslationResult", {
-    getLanguage: () => getSelectedLanguage()
-  })
-  createMailAudioReader("creationOutputAttachmentsSummaryResult", {
-    getLanguage: () => getSelectedLanguage()
-  })
-  createMailAudioReader("receivedMailContent", {
-    getLanguage: () => getReceivedMailInputLanguage(),
-    readingStrategy: "segment-detection"
-  })
-  createMailAudioReader("receivedMailTranslationResult", {
-    getLanguage: () => getSelectedLanguage()
-  })
-  createMailAudioReader("receivedMailSummaryResult", {
-    getLanguage: () => getSelectedLanguage()
-  })
-  createMailAudioReader("receivedAttachmentsTranslationResult", {
-    getLanguage: () => getSelectedLanguage()
-  })
-  createMailAudioReader("receivedAttachmentsSummaryResult", {
-    getLanguage: () => getSelectedLanguage()
-  })
-  createMailAudioReader("replyOutputMailContent", {
-    getLanguage: () => getSelectedLanguage()
-  })
-  createMailAudioReader("replyOutputTranslationResult", {
-    getLanguage: () => getSelectedLanguage()
-  })
-  createMailAudioReader("replyOutputSummaryResult", {
-    getLanguage: () => getSelectedLanguage()
-  })
-  createMailAudioReader("replyOutputRephraseResult", {
-    getLanguage: () => getSelectedLanguage()
-  })
-  createMailAudioReader("replyAttachmentsTranslationResult", {
-    getLanguage: () => getSelectedLanguage()
-  })
-  createMailAudioReader("replyAttachmentsSummaryResult", {
-    getLanguage: () => getSelectedLanguage()
+  MAIL_AUDIO_READER_CONFIGS.forEach(([textareaId, options]) => {
+    const readerOptions = {
+      ...(options || {})
+    }
+    if (readerOptions.useDetectedLanguage) {
+      readerOptions.readingStrategy = "segment-detection"
+    }
+    createMailAudioReader(textareaId, readerOptions)
   })
 }
 

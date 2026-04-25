@@ -148,7 +148,6 @@
       const current = Array.isArray(window.__mailAudioTrace) ? window.__mailAudioTrace : []
       current.push(nextEntry)
       window.__mailAudioTrace = current.slice(-200)
-      console.info("[MailAudioTrace]", nextEntry)
     } catch (_) {
       // Rien de bloquant.
     }
@@ -209,7 +208,7 @@
 
   function findVoiceForLanguage(language) {
     const normalized = normalizeLanguage(language)
-    const voices = cachedVoices.length ? cachedVoices : refreshVoices()
+    const voices = getLanguageVoiceCandidates(normalized)
     if (!voices.length) {
       return null
     }
@@ -450,18 +449,11 @@
         && (!normalizedPreferredLang || normalizeVoiceKey(voice.lang) === normalizedPreferredLang)
       )
       const configuredCandidateByName = configuredCandidateExact || candidates.find((voice) => normalizeVoiceKey(voice.name) === normalizedPreferredName)
-      const configuredAllVoicesExact = configuredCandidateByName || allVoices.find((voice) =>
-          normalizeVoiceKey(voice.name) === normalizedPreferredName
-          && (!normalizedPreferredLang || normalizeVoiceKey(voice.lang) === normalizedPreferredLang)
-        )
-      const configuredAllVoicesByName = configuredAllVoicesExact || allVoices.find((voice) => normalizeVoiceKey(voice.name) === normalizedPreferredName)
       const configuredVoice = configuredCandidateExact
         || configuredCandidateByName
-        || configuredAllVoicesExact
-        || configuredAllVoicesByName
       const fallbackVoice = configuredVoice ? null : findVoiceForLanguage(language)
       const voice = configuredVoice || fallbackVoice
-      const locale = preference.voiceLang || voice?.lang || resolveLocale(language)
+      const locale = voice?.lang || resolveLocale(language)
       const rate = Number.isFinite(preference.rate) ? preference.rate : 0.95
       const preferredCandidates = candidates
         .filter((candidate) => {
@@ -483,10 +475,8 @@
         candidateCount: candidates.length,
         resolutionBranch: configuredCandidateExact ? "configured-candidate-exact"
           : configuredCandidateByName ? "configured-candidate-by-name"
-            : configuredAllVoicesExact ? "configured-allvoices-exact"
-              : configuredAllVoicesByName ? "configured-allvoices-by-name"
-                : fallbackVoice ? "fallback-language-voice"
-                  : "no-voice-found",
+            : fallbackVoice ? "fallback-language-voice"
+              : "no-voice-found",
         preferredCandidates,
         chosenVoiceName: voice?.name || "",
         chosenVoiceLang: voice?.lang || "",
@@ -714,7 +704,6 @@
           utteranceVoiceLang: this.utterance.voice?.lang || "",
           utteranceRate: this.utterance.rate
         })
-
         this.utterance.onstart = () => {
           this.startProgressFallback(segment, rate)
         }

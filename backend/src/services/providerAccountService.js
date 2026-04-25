@@ -10,7 +10,7 @@ const {
   markProviderAccountTestResult
 } = require("./databaseService")
 
-const ALLOWED_PROVIDER_TYPES = new Set(["deepgram", "assemblyai", "deepseek-api", "mistral-api"])
+const ALLOWED_PROVIDER_TYPES = new Set(["deepgram", "assemblyai", "deepseek-api", "mistral-api", "together-api"])
 
 function getProviderSecretKey() {
   const raw = process.env.PROVIDER_API_SECRET
@@ -82,6 +82,8 @@ function getProviderLabel(providerType) {
       return "DeepSeek API"
     case "mistral-api":
       return "Mistral API"
+    case "together-api":
+      return "Together API"
     default:
       return providerType
   }
@@ -225,6 +227,13 @@ async function testProviderAccount(providerAccount) {
       }
     } else if (provider.providerType === "mistral-api") {
       const response = await fetch(`${process.env.MISTRAL_BASE_URL || "https://api.mistral.ai/v1"}/models`, {
+        headers: { Authorization: `Bearer ${apiKey}` }
+      })
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
+    } else if (provider.providerType === "together-api") {
+      const response = await fetch(`${process.env.TOGETHER_BASE_URL || "https://api.together.xyz/v1"}/models`, {
         headers: { Authorization: `Bearer ${apiKey}` }
       })
       if (!response.ok) {

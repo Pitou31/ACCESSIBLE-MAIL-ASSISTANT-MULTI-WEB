@@ -49,6 +49,20 @@ const BASE_RULES = [
     status: "active",
     content: "Ne jamais inventer une information absente du contexte transmis. Ne pas confirmer un fait, une disponibilite, une conformite ou une lisibilite sans element explicite.",
     notes: "Garde-fou global principal."
+  },
+  {
+    title: "Répondre aux demandes d'information sur les délais",
+    ruleType: "content",
+    applicationScope: "mail_assistant",
+    mailboxScope: "global",
+    mailCategoryScope: "global",
+    workflowScope: "reply",
+    theme: "delais",
+    missingInfoAction: "cautious_reply",
+    priorityRank: 15,
+    status: "active",
+    content: "Lorsqu'un mail demande un délai, un délai de réponse ou une date de retour, ne pas inventer de délai chiffré absent du contexte. Accuser réception de la demande, indiquer qu'elle est prise en compte, annoncer une réponse dans les meilleurs délais et signaler qu'une vérification humaine est nécessaire si un délai précis doit être confirmé.",
+    notes: "Règle socle pour les demandes d'information portant sur les délais."
   }
 ]
 

@@ -13,6 +13,8 @@ backend/data/
 
 # Sauvegardes internes
 sauvegarde/
+backup-manifest.txt
+*.before-*
 
 # Fichiers système
 .DS_Store

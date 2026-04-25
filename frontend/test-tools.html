@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aide aux tests</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Inter:wght@400;500;600;700;800&family=Lexend:wght@400;500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/frontend/css/styles.css" />
+</head>
+<body data-theme="midnight">
+  <div class="app-shell">
+    <!-- SIDEBAR -->
+
+    <main class="main-content">
+      <header class="hero-header glass-card">
+        <div class="hero-header-text">
+          <p class="eyebrow">Pré-production</p>
+          <h1>Outils d'aide aux tests</h1>
+          <p class="subtitle">Vue de contrôle pour suivre les jeux d'essai, les demandes, les comptes, les boîtes mail et les premiers événements de sécurité. La future BDD PostgreSQL reste la cible de pré-production.</p>
+        </div>
+      </header>
+
+      <section class="settings-toolbar glass-card">
+        <div>
+          <span class="section-tag">Contrôle</span>
+          <h3>Synthèse testable sans accès direct à la BDD</h3>
+          <p class="section-note">Les données passent par les API applicatives afin de rester compatibles avec la migration PostgreSQL.</p>
+        </div>
+
+        <div class="mail-actions">
+          <button class="action-button send-button" id="testToolsRefreshButton" type="button">Actualiser</button>
+          <a class="action-button" href="/frontend/admin-private.html">Espace administrateur</a>
+        </div>
+      </section>
+
+      <section class="stats-row" id="testToolsStats"></section>
+
+      <section class="settings-grid">
+        <article class="glass-card settings-card">
+          <span class="section-tag">Demandes</span>
+          <h3>Demandes par statut</h3>
+          <div class="admin-records" id="testToolsRequests"></div>
+        </article>
+
+        <article class="glass-card settings-card">
+          <span class="section-tag">Comptes</span>
+          <h3>Comptes par rôle et statut</h3>
+          <div class="admin-records" id="testToolsAccounts"></div>
+        </article>
+      </section>
+
+      <section class="settings-grid">
+        <article class="glass-card settings-card">
+          <span class="section-tag">Boîtes mail</span>
+          <h3>Ressources mail connues</h3>
+          <div class="admin-records" id="testToolsMailboxes"></div>
+        </article>
+
+        <article class="glass-card settings-card">
+          <span class="section-tag">Sécurité</span>
+          <h3>Derniers événements sécurité</h3>
+          <p class="settings-help">Visible uniquement pour le super administrateur. Les limites anti-robots restent actives même si le journal est vide.</p>
+          <div class="admin-records" id="testToolsSecurity"></div>
+        </article>
+      </section>
+
+      <section class="settings-grid">
+        <article class="glass-card settings-card">
+          <span class="section-tag">Parcours</span>
+          <h3>Liens rapides de test</h3>
+          <div class="admin-records" id="testToolsLinks"></div>
+        </article>
+
+        <article class="glass-card settings-card">
+          <span class="section-tag">État</span>
+          <h3>Dernier chargement</h3>
+          <p class="settings-help form-feedback is-info" id="testToolsFeedback">Outils prêts.</p>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="/frontend/js/sidebar.js"></script>
+  <script src="/frontend/js/test-tools.js"></script>
+</body>
+</html>

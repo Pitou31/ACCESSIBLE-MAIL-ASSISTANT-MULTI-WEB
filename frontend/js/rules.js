@@ -31,6 +31,10 @@ let currentSession = null
 let currentEditingRuleId = ""
 let currentRules = []
 
+function isAdminRole(role = "") {
+  return role === "admin" || role === "super_admin"
+}
+
 function normalizeSearch(value = "") {
   return String(value || "")
     .normalize("NFD")
@@ -58,7 +62,7 @@ async function loadSession() {
   currentSession = result.session
   const role = result.session?.role || ""
   const email = result.session?.email || ""
-  if (role !== "admin") {
+  if (!isAdminRole(role)) {
     setFeedback(rulesAccessSummary, `Connecté en ${email}, mais l’édition des règles est réservée à l’administrateur.`, "error")
     disableEditor(true)
     window.setTimeout(() => {
@@ -275,7 +279,7 @@ async function init() {
     if (!session) {
       return
     }
-    if (session.role === "admin") {
+    if (isAdminRole(session.role)) {
       await loadRules()
     }
     resetEditor()

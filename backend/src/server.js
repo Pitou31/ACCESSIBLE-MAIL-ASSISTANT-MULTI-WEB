@@ -64,6 +64,7 @@ const {
   handleAdminRequestsList,
   handleAdminAccountsList,
   handleAdminMailboxResourcesList,
+  handleAdminSecurityEventsList,
   handleAdminMailRulesList,
   handleAdminMailRuleCreate,
   handleAdminMailRuleUpdate,
@@ -108,6 +109,7 @@ const {
   getCurrentRole,
   getBlockedModelsForRole
 } = require("./services/modelAccessService")
+const { getHumanVerificationProvider } = require("./services/humanVerificationService")
 const projectRoot = path.resolve(__dirname, "../..")
 const frontendRoot = path.join(projectRoot, "frontend")
 const sidebarPath = path.join(frontendRoot, "components", "sidebar.html")
@@ -120,7 +122,8 @@ const PRIVATE_FRONTEND_PATHS = new Set([
   "/frontend/stats.html",
   "/frontend/billing.html",
   "/frontend/versions.html",
-  "/frontend/backups.html"
+  "/frontend/backups.html",
+  "/frontend/test-tools.html"
 ])
 
 openDatabase()
@@ -246,9 +249,14 @@ const server = http.createServer((req, res) => {
 
   if (req.method === "GET" && pathname === "/api/models") {
     const apiModels = [
-      { value: "mistral-api", label: "Mistral API", type: "api" },
+      { value: "together-api", label: "Together éco - LFM2 24B", type: "api" },
+      { value: "together-gemma-3n-e4b", label: "Together éco - Gemma 3N E4B", type: "api" },
+      { value: "together-llama-3-8b-lite", label: "Together éco - Llama 3 8B Lite", type: "api" },
+      { value: "together-qwen-3-5-9b", label: "Together éco - Qwen 3.5 9B", type: "api" },
+      { value: "together-gpt-oss-20b", label: "Together éco - GPT OSS 20B", type: "api" },
       { value: "deepseek-chat", label: "DeepSeek Chat (API)", type: "api" },
-      { value: "deepseek-reasoner", label: "DeepSeek Reasoner (API)", type: "api" }
+      { value: "deepseek-reasoner", label: "DeepSeek Reasoner (API)", type: "api" },
+      { value: "mistral-api", label: "Mistral API", type: "api" }
     ]
 
     const role = getCurrentRole()
@@ -262,6 +270,19 @@ const server = http.createServer((req, res) => {
       blockedModels
     }))
 
+    return
+  }
+
+  if (req.method === "GET" && pathname === "/api/human-verification/config") {
+    const provider = getHumanVerificationProvider()
+    res.writeHead(200, { "Content-Type": "application/json" })
+    res.end(JSON.stringify({
+      ok: true,
+      provider,
+      turnstileSiteKey: provider === "turnstile"
+        ? String(process.env.TURNSTILE_SITE_KEY || "").trim()
+        : ""
+    }))
     return
   }
 
@@ -894,6 +915,11 @@ const server = http.createServer((req, res) => {
 
   if (req.method === "GET" && req.url.startsWith("/api/admin/mailboxes")) {
     handleAdminMailboxResourcesList(req, res)
+    return
+  }
+
+  if (req.method === "GET" && req.url.startsWith("/api/admin/security-events")) {
+    handleAdminSecurityEventsList(req, res)
     return
   }
 

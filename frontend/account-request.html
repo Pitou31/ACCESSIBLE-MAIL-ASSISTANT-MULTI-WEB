@@ -131,6 +131,8 @@
                 <input id="humanConfirmation" type="checkbox" />
                 <span>Je confirme être un humain</span>
               </label>
+              <input id="accountTurnstileToken" type="hidden" value="" />
+              <div class="turnstile-widget" data-turnstile-target="accountTurnstileToken" data-turnstile-checkbox="humanConfirmation"></div>
             </div>
 
             <div class="settings-field settings-field-full" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;" aria-hidden="true">

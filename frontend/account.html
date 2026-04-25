@@ -58,6 +58,20 @@
             </div>
 
             <div class="settings-field settings-field-full">
+              <label class="settings-toggle">
+                <input id="accountLoginHumanConfirmation" type="checkbox" />
+                <span>Je confirme être un humain</span>
+              </label>
+              <input id="accountLoginTurnstileToken" type="hidden" value="" />
+              <div class="turnstile-widget" data-turnstile-target="accountLoginTurnstileToken" data-turnstile-checkbox="accountLoginHumanConfirmation"></div>
+            </div>
+
+            <div class="settings-field settings-field-full" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
+              <label for="accountLoginWebsite">Ne pas remplir ce champ</label>
+              <input id="accountLoginWebsite" class="settings-select" type="text" tabindex="-1" autocomplete="off" />
+            </div>
+
+            <div class="settings-field settings-field-full">
               <div class="mail-actions">
                 <button class="action-button" id="forgotPasswordButton" type="button">Mot de passe oublié</button>
                 <button class="action-button" id="accountStatusButton" type="button">Verifier mon statut</button>
@@ -116,6 +130,20 @@
                   <div class="settings-field settings-field-full">
                     <label for="confirmNewPassword">Confirmer le nouveau mot de passe</label>
                     <input id="confirmNewPassword" class="settings-select" type="password" placeholder="Confirmer le nouveau mot de passe" />
+                  </div>
+
+                  <div class="settings-field settings-field-full">
+                    <label class="settings-toggle">
+                      <input id="accountChangePasswordHumanConfirmation" type="checkbox" />
+                      <span>Je confirme être un humain</span>
+                    </label>
+                    <input id="accountChangePasswordTurnstileToken" type="hidden" value="" />
+                    <div class="turnstile-widget" data-turnstile-target="accountChangePasswordTurnstileToken" data-turnstile-checkbox="accountChangePasswordHumanConfirmation"></div>
+                  </div>
+
+                  <div class="settings-field settings-field-full" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
+                    <label for="accountChangePasswordWebsite">Ne pas remplir ce champ</label>
+                    <input id="accountChangePasswordWebsite" class="settings-select" type="text" tabindex="-1" autocomplete="off" />
                   </div>
 
                   <div class="settings-field settings-field-full">

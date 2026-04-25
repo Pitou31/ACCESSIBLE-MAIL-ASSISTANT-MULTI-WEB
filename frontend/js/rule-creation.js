@@ -58,6 +58,10 @@ let currentDraft = null
 let currentFinalRule = null
 let currentSavedRuleId = ""
 
+function isAdminRole(role = "") {
+  return role === "admin" || role === "super_admin"
+}
+
 const EXTERNAL_CREATE_PROMPT = `Tu es un assistant chargé d'aider un administrateur à créer une règle métier pour une application de réponse automatique aux mails.
 
 Objectif :
@@ -418,7 +422,7 @@ async function loadSession() {
   }
 
   currentSession = result.session
-  if (result.session.role !== "admin") {
+  if (!isAdminRole(result.session.role)) {
     setFeedback(accessSummary, "Accès réservé à l’administrateur.", "error")
     window.setTimeout(() => {
       window.location.href = "/frontend/admin-login.html"

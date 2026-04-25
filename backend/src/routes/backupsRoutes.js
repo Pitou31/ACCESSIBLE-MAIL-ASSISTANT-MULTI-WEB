@@ -6,24 +6,28 @@ const { getSessionPayloadFromRequest } = require("./accountRoutes")
 
 const execFileAsync = promisify(execFile)
 
-const PROJECT_NAME = "ACCESSIBLE_MAIL_ASSISTANT_MULTI"
-const PROJECT_ROOT = path.resolve(__dirname, "../..")
-const SNAPSHOT_ROOT = "/Users/jacquessoule/Documents/Backups/Projects/accessible_mail_assistant_multi"
-const SNAPSHOT_SCRIPT = "/Users/jacquessoule/bin/project-backup.sh"
-const RESTORE_BIS_PATH = "/Users/jacquessoule/Documents/SPARK/ACCESSIBLE_MAIL_ASSISTANT_MULTI_BIS"
+const PROJECT_NAME = process.env.BACKUP_PROJECT_NAME || "ACCESSIBLE_MAIL_ASSISTANT_MULTI_WEB"
+const PROJECT_ROOT = process.env.BACKUP_PROJECT_ROOT || path.resolve(__dirname, "../../..")
+const BACKUP_ROOT = process.env.BACKUP_ROOT || path.join(path.dirname(PROJECT_ROOT), "backups")
+const SNAPSHOT_ROOT = path.join(BACKUP_ROOT, "accessible_mail_assistant_multi_web")
+const SNAPSHOT_SCRIPT = process.env.BACKUP_SCRIPT || "/Users/jacquessoule/bin/project-backup.sh"
+const RESTORE_BIS_PATH = process.env.RESTORE_BIS_PATH || path.join(path.dirname(PROJECT_ROOT), "ACCESSIBLE_MAIL_ASSISTANT_MULTI_WEB_BIS")
+const ADMIN_ROLES = new Set(["admin", "super_admin"])
 
-function requireActiveSession(req, res) {
+function requireAdminSession(req, res) {
   const payload = getSessionPayloadFromRequest(req)
-  if (payload) {
+  if (payload && ADMIN_ROLES.has(payload.account?.role)) {
     return payload
   }
 
-  res.writeHead(401, {
+  res.writeHead(payload ? 403 : 401, {
     "Content-Type": "application/json"
   })
   res.end(JSON.stringify({
     ok: false,
-    error: "Connexion utilisateur requise."
+    error: payload
+      ? "Accès administrateur requis."
+      : "Connexion administrateur requise."
   }))
   return null
 }
@@ -64,7 +68,7 @@ function listSnapshots() {
 }
 
 async function handleBackupsList(req, res) {
-  const sessionPayload = requireActiveSession(req, res)
+  const sessionPayload = requireAdminSession(req, res)
   if (!sessionPayload) {
     return
   }
@@ -81,8 +85,10 @@ async function handleBackupsList(req, res) {
       ok: true,
       projectName: PROJECT_NAME,
       projectRoot: PROJECT_ROOT,
+      backupRoot: BACKUP_ROOT,
       snapshotRoot: SNAPSHOT_ROOT,
       restoreBisPath: RESTORE_BIS_PATH,
+      snapshotScript: fs.existsSync(SNAPSHOT_SCRIPT) ? SNAPSHOT_SCRIPT : "",
       latestTarget,
       snapshots: listSnapshots()
     }))
@@ -96,7 +102,7 @@ async function handleBackupsList(req, res) {
 }
 
 async function handleBackupsSnapshotCreate(req, res, body) {
-  const sessionPayload = requireActiveSession(req, res)
+  const sessionPayload = requireAdminSession(req, res)
   if (!sessionPayload) {
     return
   }
@@ -110,6 +116,15 @@ async function handleBackupsSnapshotCreate(req, res, body) {
       res.end(JSON.stringify({
         ok: false,
         error: "Titre de sauvegarde manquant."
+      }))
+      return
+    }
+
+    if (!fs.existsSync(SNAPSHOT_SCRIPT)) {
+      res.writeHead(503, { "Content-Type": "application/json" })
+      res.end(JSON.stringify({
+        ok: false,
+        error: "Script de sauvegarde indisponible sur cet environnement."
       }))
       return
     }
@@ -144,7 +159,7 @@ async function handleBackupsSnapshotCreate(req, res, body) {
 }
 
 async function handleBackupsRestoreBis(req, res, body) {
-  const sessionPayload = requireActiveSession(req, res)
+  const sessionPayload = requireAdminSession(req, res)
   if (!sessionPayload) {
     return
   }

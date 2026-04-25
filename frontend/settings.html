@@ -313,9 +313,14 @@
             <div class="settings-field">
               <label for="defaultModelSelect">Modèle IA par défaut</label>
               <select id="defaultModelSelect" class="settings-select">
-                <option value="mistral-api">Mistral API</option>
+                <option value="together-api">Together éco - LFM2 24B</option>
+                <option value="together-gemma-3n-e4b">Together éco - Gemma 3N E4B</option>
+                <option value="together-llama-3-8b-lite">Together éco - Llama 3 8B Lite</option>
+                <option value="together-qwen-3-5-9b">Together éco - Qwen 3.5 9B</option>
+                <option value="together-gpt-oss-20b">Together éco - GPT OSS 20B</option>
                 <option value="deepseek-chat" selected>DeepSeek Chat (API)</option>
                 <option value="deepseek-reasoner">DeepSeek Reasoner (API)</option>
+                <option value="mistral-api">Mistral API</option>
               </select>
             </div>
 
@@ -545,6 +550,33 @@
             </div>
 
             <div class="settings-field settings-field-full">
+              <div class="account-summary-card">
+                <p class="account-summary-title">Together API</p>
+                <div class="settings-form-grid">
+                  <div class="settings-field settings-field-full">
+                    <label for="togetherApiKeyInput">Clé API Together</label>
+                    <input id="togetherApiKeyInput" class="settings-select" type="password" placeholder="Coller la clé Together API" />
+                  </div>
+                  <div class="settings-field">
+                    <label class="settings-toggle">
+                      <input id="togetherDefaultToggle" type="checkbox" />
+                      <span>Préférer Together API pour l'IA texte</span>
+                    </label>
+                  </div>
+                  <div class="settings-field settings-field-full">
+                    <div class="mail-actions">
+                      <button class="action-button" id="togetherSaveProviderBtn" type="button">Enregistrer Together API</button>
+                      <button class="action-button secondary-button" id="togetherTestProviderBtn" type="button">Tester Together API</button>
+                    </div>
+                  </div>
+                  <div class="settings-field settings-field-full">
+                    <p class="settings-help form-feedback is-info" id="togetherProviderFeedback">Together API non configuré.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="settings-field settings-field-full">
               <div class="account-summary-card" id="providerUsageSummaryCard">
                 <p class="account-summary-title">Consommation estimée</p>
                 <p class="settings-help" id="providerUsageSummary">Aucune consommation enregistrée pour le moment.</p>
@@ -583,9 +615,14 @@
               <label class="settings-preview-llm-picker">
                 <span>LLM entrée</span>
                 <select id="previewInputModelSelect" class="settings-select">
-                  <option value="mistral-api">Mistral API</option>
+                  <option value="together-api">Together éco - LFM2 24B</option>
+                  <option value="together-gemma-3n-e4b">Together éco - Gemma 3N E4B</option>
+                  <option value="together-llama-3-8b-lite">Together éco - Llama 3 8B Lite</option>
+                  <option value="together-qwen-3-5-9b">Together éco - Qwen 3.5 9B</option>
+                  <option value="together-gpt-oss-20b">Together éco - GPT OSS 20B</option>
                   <option value="deepseek-chat" selected>DeepSeek chat</option>
                   <option value="deepseek-reasoner">DeepSeek reasoner</option>
+                  <option value="mistral-api">Mistral API</option>
                 </select>
               </label>
             </div>
@@ -608,9 +645,14 @@
               <label class="settings-preview-llm-picker">
                 <span>LLM sortie</span>
                 <select id="previewOutputModelSelect" class="settings-select">
-                  <option value="mistral-api">Mistral API</option>
+                  <option value="together-api">Together éco - LFM2 24B</option>
+                  <option value="together-gemma-3n-e4b">Together éco - Gemma 3N E4B</option>
+                  <option value="together-llama-3-8b-lite">Together éco - Llama 3 8B Lite</option>
+                  <option value="together-qwen-3-5-9b">Together éco - Qwen 3.5 9B</option>
+                  <option value="together-gpt-oss-20b">Together éco - GPT OSS 20B</option>
                   <option value="deepseek-chat" selected>DeepSeek chat</option>
                   <option value="deepseek-reasoner">DeepSeek reasoner</option>
+                  <option value="mistral-api">Mistral API</option>
                 </select>
               </label>
             </div>

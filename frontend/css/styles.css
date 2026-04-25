@@ -1043,6 +1043,32 @@ body[data-page="audio-test"] .audio-test-actions .action-button {
   font-weight: 800;
 }
 
+.file-input {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.28);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text-main);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.file-input::file-selector-button {
+  margin-right: 12px;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #0f172a;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .settings-toolbar,
 .settings-card {
   padding: 30px 32px;

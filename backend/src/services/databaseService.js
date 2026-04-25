@@ -11,6 +11,24 @@ const databasePath = path.join(dataDirectory, "agent-mail-assistant.db")
 
 let database = null
 
+const CORE_MAIL_RULES = [
+  {
+    id: "rule-delais-demande-information",
+    title: "Répondre aux demandes d'information sur les délais",
+    ruleType: "content",
+    applicationScope: "mail_assistant",
+    mailboxScope: "global",
+    mailCategoryScope: "global",
+    workflowScope: "reply",
+    theme: "delais",
+    missingInfoAction: "cautious_reply",
+    priorityRank: 15,
+    status: "active",
+    content: "Lorsqu'un mail demande un délai, un délai de réponse ou une date de retour, ne pas inventer de délai chiffré absent du contexte. Accuser réception de la demande, indiquer qu'elle est prise en compte, annoncer une réponse dans les meilleurs délais et signaler qu'une vérification humaine est nécessaire si un délai précis doit être confirmé.",
+    notes: "Règle socle pour les demandes d'information portant sur les délais."
+  }
+]
+
 function ensureDatabaseDirectory() {
   fs.mkdirSync(dataDirectory, { recursive: true })
 }
@@ -243,6 +261,22 @@ function initSchema(db) {
       FOREIGN KEY (account_id) REFERENCES accounts(id)
     );
 
+    CREATE TABLE IF NOT EXISTS security_events (
+      id TEXT PRIMARY KEY,
+      created_at TEXT NOT NULL,
+      event_type TEXT NOT NULL,
+      severity TEXT NOT NULL,
+      status TEXT NOT NULL,
+      route TEXT NOT NULL,
+      method TEXT NOT NULL,
+      ip TEXT,
+      email TEXT,
+      account_type TEXT,
+      actor_id TEXT,
+      user_agent TEXT,
+      details_json TEXT
+    );
+
     CREATE TABLE IF NOT EXISTS user_sessions (
       id TEXT PRIMARY KEY,
       account_id TEXT NOT NULL,
@@ -464,6 +498,9 @@ function initSchema(db) {
     CREATE INDEX IF NOT EXISTS idx_account_actions_target ON account_actions(target_type, target_id);
     CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_account_id ON password_reset_tokens(account_id);
     CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_token ON password_reset_tokens(token);
+    CREATE INDEX IF NOT EXISTS idx_security_events_created_at ON security_events(created_at);
+    CREATE INDEX IF NOT EXISTS idx_security_events_route_ip ON security_events(route, ip);
+    CREATE INDEX IF NOT EXISTS idx_security_events_email ON security_events(email);
     CREATE INDEX IF NOT EXISTS idx_user_sessions_account_id ON user_sessions(account_id);
     CREATE INDEX IF NOT EXISTS idx_user_sessions_status ON user_sessions(session_status);
     CREATE INDEX IF NOT EXISTS idx_provider_accounts_owner ON provider_accounts(owner_scope_type, owner_scope_id);
@@ -491,9 +528,75 @@ function initSchema(db) {
   `)
 
   migrateMailboxSharingSchemaIfNeeded(db)
+  ensureCoreMailRules(db)
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_mailbox_connections_resource_id ON mailbox_connections(mailbox_resource_id);
   `)
+}
+
+function ensureCoreMailRules(db) {
+  const now = new Date().toISOString()
+  const statement = db.prepare(`
+    INSERT OR IGNORE INTO mail_rules (
+      id,
+      created_at,
+      updated_at,
+      created_by,
+      updated_by,
+      status,
+      application_scope,
+      mailbox_scope,
+      mail_category_scope,
+      workflow_scope,
+      rule_type,
+      theme,
+      title,
+      content,
+      missing_info_action,
+      priority_rank,
+      notes,
+      metadata_json
+    ) VALUES (
+      @id,
+      @now,
+      @now,
+      'system-core',
+      'system-core',
+      @status,
+      @application_scope,
+      @mailbox_scope,
+      @mail_category_scope,
+      @workflow_scope,
+      @rule_type,
+      @theme,
+      @title,
+      @content,
+      @missing_info_action,
+      @priority_rank,
+      @notes,
+      @metadata_json
+    )
+  `)
+
+  for (const rule of CORE_MAIL_RULES) {
+    statement.run({
+      id: rule.id,
+      now,
+      status: rule.status,
+      application_scope: rule.applicationScope,
+      mailbox_scope: rule.mailboxScope,
+      mail_category_scope: rule.mailCategoryScope,
+      workflow_scope: rule.workflowScope,
+      rule_type: rule.ruleType,
+      theme: rule.theme,
+      title: rule.title,
+      content: rule.content,
+      missing_info_action: rule.missingInfoAction,
+      priority_rank: rule.priorityRank,
+      notes: rule.notes,
+      metadata_json: JSON.stringify({ source: "core_mail_rules" })
+    })
+  }
 }
 
 function parseJsonSafely(value, fallback) {
@@ -1236,6 +1339,68 @@ function insertAccountAction(action) {
       @metadata_json
     )
   `).run(action)
+}
+
+function insertSecurityEvent(event) {
+  const db = openDatabase()
+  db.prepare(`
+    INSERT INTO security_events (
+      id,
+      created_at,
+      event_type,
+      severity,
+      status,
+      route,
+      method,
+      ip,
+      email,
+      account_type,
+      actor_id,
+      user_agent,
+      details_json
+    ) VALUES (
+      @id,
+      @created_at,
+      @event_type,
+      @severity,
+      @status,
+      @route,
+      @method,
+      @ip,
+      @email,
+      @account_type,
+      @actor_id,
+      @user_agent,
+      @details_json
+    )
+  `).run(event)
+}
+
+function listSecurityEvents(filters = {}) {
+  const db = openDatabase()
+  const clauses = []
+  const values = []
+  if (filters.email) {
+    clauses.push("email = ?")
+    values.push(filters.email)
+  }
+  if (filters.eventType) {
+    clauses.push("event_type = ?")
+    values.push(filters.eventType)
+  }
+  if (filters.status) {
+    clauses.push("status = ?")
+    values.push(filters.status)
+  }
+  const limit = Math.max(1, Math.min(Number(filters.limit || 200), 1000))
+  const whereClause = clauses.length > 0 ? `WHERE ${clauses.join(" AND ")}` : ""
+  return db.prepare(`
+    SELECT *
+    FROM security_events
+    ${whereClause}
+    ORDER BY created_at DESC
+    LIMIT ${limit}
+  `).all(...values)
 }
 
 function updateAccountStatus(accountId, status, options = {}) {
@@ -3823,6 +3988,8 @@ module.exports = {
   listAccounts,
   getAccountRequestById,
   getAccountById,
+  insertSecurityEvent,
+  listSecurityEvents,
   updateAccountRequestStatus,
   updateAccountStatus,
   updateAccountPassword,

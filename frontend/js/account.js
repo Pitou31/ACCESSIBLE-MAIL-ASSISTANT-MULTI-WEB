@@ -105,6 +105,10 @@ function getProviderApiClient() {
       {
         providerType: "mistral-api",
         label: "Mistral API"
+      },
+      {
+        providerType: "together-api",
+        label: "Together API"
       }
     ]
   }
@@ -127,7 +131,8 @@ function getProviderApiClient() {
       supportingDocumentName: file?.name || "",
       consent: Boolean($("dataConsent")?.checked),
       humanConfirmed: Boolean($("humanConfirmation")?.checked),
-      humanTrap: $("humanWebsite")?.value || ""
+      humanTrap: $("humanWebsite")?.value || "",
+      turnstileToken: $("accountTurnstileToken")?.value || ""
     }
   }
 
@@ -421,7 +426,18 @@ function getProviderApiClient() {
     return {
       email: $("loginEmail")?.value.trim().toLowerCase() || "",
       accountType: $("loginAccountType")?.value || "individuel",
-      password: $("loginPassword")?.value || ""
+      password: $("loginPassword")?.value || "",
+      humanConfirmed: Boolean($("accountLoginHumanConfirmation")?.checked),
+      humanTrap: $("accountLoginWebsite")?.value || "",
+      turnstileToken: $("accountLoginTurnstileToken")?.value || ""
+    }
+  }
+
+  function getAccountChangePasswordHumanPayload() {
+    return {
+      humanConfirmed: Boolean($("accountChangePasswordHumanConfirmation")?.checked),
+      humanTrap: $("accountChangePasswordWebsite")?.value || "",
+      turnstileToken: $("accountChangePasswordTurnstileToken")?.value || ""
     }
   }
 
@@ -577,7 +593,7 @@ function getProviderApiClient() {
 
   async function lookupAccountStatus() {
     const feedback = $("loginFeedback")
-    const { email, accountType } = getLoginContext()
+    const { email, accountType, humanConfirmed, humanTrap, turnstileToken } = getLoginContext()
 
     if (!email || !accountType) {
       setFeedback(feedback, "Renseigne l'email et le type de compte pour verifier le statut.", "error")
@@ -587,7 +603,7 @@ function getProviderApiClient() {
     setFeedback(feedback, "Recherche du statut en cours...", "info")
 
     try {
-      const params = new URLSearchParams({ email, accountType })
+      const params = new URLSearchParams({ email, accountType, humanConfirmed, humanTrap, turnstileToken })
       const response = await fetch(`/api/account/status?${params.toString()}`)
       const result = await response.json()
 
@@ -660,7 +676,7 @@ function getProviderApiClient() {
 
   async function forgotPassword() {
     const feedback = $("loginFeedback")
-    const { email, accountType } = getLoginContext()
+    const { email, accountType, humanConfirmed, humanTrap, turnstileToken } = getLoginContext()
 
     if (!email || !accountType) {
       setFeedback(feedback, "Renseigne l'email et le type de compte avant de demander un mot de passe oublié.", "error")
@@ -673,7 +689,7 @@ function getProviderApiClient() {
       const response = await fetch("/api/account/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, accountType })
+        body: JSON.stringify({ email, accountType, humanConfirmed, humanTrap, turnstileToken })
       })
 
       const result = await response.json()
@@ -740,7 +756,8 @@ function getProviderApiClient() {
           email: session.email,
           accountType: session.accountType,
           currentPassword,
-          newPassword
+          newPassword,
+          ...getAccountChangePasswordHumanPayload()
         })
       })
 
