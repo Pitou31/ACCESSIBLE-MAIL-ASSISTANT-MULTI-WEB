@@ -85,6 +85,13 @@ function formatRetryDelay(ms) {
   return `${minutes} minute${minutes > 1 ? "s" : ""}`
 }
 
+function maskEmail(email) {
+  if (!email || typeof email !== "string") return email
+  const at = email.indexOf("@")
+  if (at < 1) return email
+  return email[0] + "***" + email.slice(at)
+}
+
 function safeDetails(details) {
   try {
     return JSON.stringify(details || {})
@@ -104,7 +111,7 @@ function writeSecurityEvent(req, payload = {}, options = {}) {
       route: String(options.route || req.url || ""),
       method: String(req.method || ""),
       ip: getClientIp(req),
-      email: normalizeEmail(payload),
+      email: maskEmail(normalizeEmail(payload)),
       account_type: normalizeAccountType(payload),
       actor_id: String(options.actorId || payload.accountId || ""),
       user_agent: String(req.headers["user-agent"] || ""),
@@ -189,5 +196,6 @@ module.exports = {
   checkSecurityRateLimit,
   enforceSecurityRateLimit,
   getClientIp,
+  maskEmail,
   recordSecurityEvent
 }
