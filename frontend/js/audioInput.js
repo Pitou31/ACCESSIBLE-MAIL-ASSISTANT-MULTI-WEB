@@ -2191,7 +2191,12 @@
     }
 
     appendToEnd(text) {
-      const insertion = this.buildInsertion(this.textElement.value, text, "")
+      const currentValue = this.textElement.value
+      const isFirstAppend = currentValue === this.initialValueBeforeDictation
+      const prefix = isFirstAppend && currentValue && !currentValue.endsWith("\n")
+        ? currentValue + "\n"
+        : currentValue
+      const insertion = this.buildInsertion(prefix, text, "")
       this.textElement.value = insertion.value
       const caret = insertion.value.length
       this.textElement.focus()
