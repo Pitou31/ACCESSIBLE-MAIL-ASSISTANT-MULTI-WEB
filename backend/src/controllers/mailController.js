@@ -160,6 +160,9 @@ Regle Edition vocale :
 - Si l'utilisateur dit "ajoute le mot cordialement a la fin", l'action est "append_end" et le champ "text" vaut seulement "cordialement".
 - Si l'utilisateur dit "positionne-toi en fin de page et ajoute le mot cordialement", l'action est "append_end" et le champ "text" vaut seulement "cordialement".
 - Si l'utilisateur dit "dans Bonjour Madame ajoute Mademoiselle virgule devant Madame", l'action est "insert_before", la cible est "Madame" et le champ "text" vaut "Mademoiselle,".
+- Si l'utilisateur dit "ajoute Bien avant Cordialement", l'action est "insert_before", la cible est "Cordialement" et le champ "text" vaut "Bien". Le mot "avant" indique la position, pas le texte a inserer.
+- Si l'utilisateur dit "insere un espace apres Madame", l'action est "insert_after", la cible est "Madame" et le champ "text" vaut " ".
+- De maniere generale : "ajoute X avant Y" ou "insere X avant Y" → "insert_before", target Y, text X. "ajoute X apres Y" ou "insere X apres Y" → "insert_after", target Y, text X.
 - Si l'utilisateur dit simplement "ecris ..." ou "insere ..." sans cible explicite ni mention de fin, l'action par defaut est "replace_selection" et le champ "text" contient seulement le texte a inserer. Si aucune selection n'est active, cela sera insere a l'emplacement courant du curseur.
 - Si l'utilisateur dit "supprime cordialement" ou "supprime le mot cordialement", l'action est "delete_text" et le champ "target" vaut seulement "cordialement".
 - Si l'utilisateur dit "va a la ligne", "a la ligne", "retour a la ligne", "saut de ligne" ou "saute une ligne", l'action est "insert_line_break".

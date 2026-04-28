@@ -1963,6 +1963,22 @@
       }
     }
 
+    findTargetInText(value, target) {
+      const first = value.indexOf(target)
+      if (first !== -1) {
+        const second = value.indexOf(target, first + target.length)
+        return { index: first, length: target.length, ambiguous: second !== -1 }
+      }
+      const valueLower = value.toLowerCase()
+      const targetLower = target.toLowerCase()
+      const firstCI = valueLower.indexOf(targetLower)
+      if (firstCI !== -1) {
+        const secondCI = valueLower.indexOf(targetLower, firstCI + targetLower.length)
+        return { index: firstCI, length: targetLower.length, ambiguous: secondCI !== -1 }
+      }
+      return { index: -1, length: 0, ambiguous: false }
+    }
+
     replaceExactText(target, replacement) {
       const value = String(this.textElement?.value || "")
       const normalizedTarget = String(target || "")
@@ -1970,16 +1986,15 @@
       if (!normalizedTarget || !normalizedReplacement) {
         throw new Error("Cible ou remplacement manquant.")
       }
-      const firstIndex = value.indexOf(normalizedTarget)
-      if (firstIndex === -1) {
+      const found = this.findTargetInText(value, normalizedTarget)
+      if (found.index === -1) {
         throw new Error("Texte cible introuvable dans la zone courante.")
       }
-      const secondIndex = value.indexOf(normalizedTarget, firstIndex + normalizedTarget.length)
-      if (secondIndex !== -1) {
+      if (found.ambiguous) {
         throw new Error("Cible ambigue dans la zone courante.")
       }
-      this.lastSelectionStart = firstIndex
-      this.lastSelectionEnd = firstIndex + normalizedTarget.length
+      this.lastSelectionStart = found.index
+      this.lastSelectionEnd = found.index + found.length
       this.replaceSelection(normalizedReplacement)
     }
 
@@ -1989,16 +2004,15 @@
       if (!normalizedTarget) {
         throw new Error("Texte cible a supprimer manquant.")
       }
-      const firstIndex = value.indexOf(normalizedTarget)
-      if (firstIndex === -1) {
+      const found = this.findTargetInText(value, normalizedTarget)
+      if (found.index === -1) {
         throw new Error("Texte cible introuvable dans la zone courante.")
       }
-      const secondIndex = value.indexOf(normalizedTarget, firstIndex + normalizedTarget.length)
-      if (secondIndex !== -1) {
+      if (found.ambiguous) {
         throw new Error("Cible ambigue dans la zone courante.")
       }
-      this.lastSelectionStart = firstIndex
-      this.lastSelectionEnd = firstIndex + normalizedTarget.length
+      this.lastSelectionStart = found.index
+      this.lastSelectionEnd = found.index + found.length
       this.replaceSelection("")
     }
 
@@ -2009,11 +2023,12 @@
       if (!normalizedTarget || !normalizedText) {
         throw new Error("Cible ou texte d'insertion manquant.")
       }
-      const firstIndex = value.indexOf(normalizedTarget)
-      if (firstIndex === -1) {
+      const found = this.findTargetInText(value, normalizedTarget)
+      if (found.index === -1) {
         throw new Error("Texte cible introuvable dans la zone courante.")
       }
-      const secondIndex = value.indexOf(normalizedTarget, firstIndex + normalizedTarget.length)
+      const { index: firstIndex, length: targetLength, ambiguous } = found
+      const secondIndex = ambiguous ? firstIndex + 1 : -1
       if (secondIndex !== -1) {
         throw new Error("Cible ambigue dans la zone courante.")
       }
@@ -2023,7 +2038,7 @@
         this.insertAtCursor(normalizedText)
         return
       }
-      const insertIndex = firstIndex + normalizedTarget.length
+      const insertIndex = firstIndex + targetLength
       this.lastSelectionStart = insertIndex
       this.lastSelectionEnd = insertIndex
       this.insertAtCursor(normalizedText)
@@ -2064,17 +2079,16 @@
         if (!normalizedTarget) {
           throw new Error("Cible du curseur manquante.")
         }
-        const firstIndex = value.indexOf(normalizedTarget)
-        if (firstIndex === -1) {
+        const found = this.findTargetInText(value, normalizedTarget)
+        if (found.index === -1) {
           throw new Error("Texte cible introuvable pour déplacer le curseur.")
         }
-        const secondIndex = value.indexOf(normalizedTarget, firstIndex + normalizedTarget.length)
-        if (secondIndex !== -1) {
+        if (found.ambiguous) {
           throw new Error("Cible ambigue pour déplacer le curseur.")
         }
         caret = position === "after"
-          ? firstIndex + normalizedTarget.length
-          : firstIndex
+          ? found.index + found.length
+          : found.index
       }
 
       this.textElement.focus()
