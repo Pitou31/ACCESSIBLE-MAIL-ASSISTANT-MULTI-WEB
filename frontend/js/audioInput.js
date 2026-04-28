@@ -302,7 +302,343 @@
     return nextWords.slice(overlapCount).join(" ").trim()
   }
 
+  function stripDiacritics(value) {
+    return String(value || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+  }
+
+  function normalizePunctuationTarget(value) {
+    const normalized = normalizeVoiceCommandForParsing(value)
+    if (normalized === "virgule") return ","
+    if (normalized === "point") return "."
+    if (normalized === "deux points") return ":"
+    if (normalized === "point d'interrogation") return "?"
+    if (normalized === "point d exclamation") return "!"
+    return decodeSpokenPunctuation(value)
+  }
+
+  function cleanupTargetCandidate(value) {
+    return String(value || "")
+      .trim()
+      .replace(/^["“”'«»]+|["“”'«»]+$/g, "")
+      .replace(/\s+/g, " ")
+      .trim()
+  }
+
+  function applyTranscriptionCommandHeuristics(value) {
+    let normalized = String(value || "")
+
+    normalized = normalized.replace(/^\s*mais\s+(?=(?:une\s+majuscule|un\s+retour|deux\s+points|un\s+point|.+?\s+en\s+majuscules|.+?\s+en\s+minuscules))/i, "mets ")
+    normalized = normalized.replace(/^\s*mes\s+(?=(?:une\s+majuscule|un\s+retour|deux\s+points|un\s+point|.+?\s+en\s+majuscules|.+?\s+en\s+minuscules))/i, "mets ")
+    normalized = normalized.replace(/^\s*fait\s+un\s+nouveau\s+paragraphe/i, "fais un nouveau paragraphe")
+    normalized = normalized.replace(/\bmai?s\s+deux\s+points\b/i, "mets deux points")
+    normalized = normalized.replace(/\bmai?s\s+une\s+virgule\b/i, "mets une virgule")
+    normalized = normalized.replace(/\bmai?s\s+un\s+point\b/i, "mets un point")
+    normalized = normalized.replace(/\bmai?s\s+un\s+retour\s+a\s+la\s+ligne\b/i, "mets un retour a la ligne")
+
+    return normalized
+  }
+
+  function normalizeVoiceCommandForParsing(value) {
+    return stripDiacritics(applyTranscriptionCommandHeuristics(value))
+      .toLowerCase()
+      .replace(/[“”«»"]/g, "\"")
+      .replace(/[’']/g, "'")
+      .replace(/\s+/g, " ")
+      .trim()
+  }
+
+  function decodeSpokenPunctuation(value) {
+    return String(value || "")
+      .replace(/\bvirgule\b/gi, ",")
+      .replace(/\bpoint d'interrogation\b/gi, "?")
+      .replace(/\bpoint d exclamation\b/gi, "!")
+      .replace(/\bpoint\b/gi, ".")
+      .replace(/\bdeux points\b/gi, ":")
+      .replace(/\s+([,.;:!?])/g, "$1")
+      .trim()
+  }
+
+  function buildLocalVoiceEditCommand(payload = {}) {
+    const commandRaw = String(payload.command || "").trim()
+    const command = normalizeVoiceCommandForParsing(commandRaw)
+    if (!command) {
+      return null
+    }
+
+    const shouldApply = true
+    const confidence = 0.98
+
+    const parseOccurrenceDescriptor = (rawDescriptor) => {
+      const descriptor = normalizeVoiceCommandForParsing(rawDescriptor)
+      if (/^(premier|premiere|première)$/.test(descriptor)) {
+        return { occurrenceIndex: 1, occurrenceMode: "" }
+      }
+      if (/^(deuxieme|deuxième|second|seconde)$/.test(descriptor)) {
+        return { occurrenceIndex: 2, occurrenceMode: "" }
+      }
+      if (/^(dernier|derniere|dernière)$/.test(descriptor)) {
+        return { occurrenceIndex: 0, occurrenceMode: "last" }
+      }
+      return null
+    }
+
+    const replaceOrdinalMatch = command.match(/^(?:remplace|remplacer)\s+(?:le|la)\s+(premier|premiere|première|deuxieme|deuxième|second|seconde|dernier|derniere|dernière)\s+(.+?)\s+par\s+(.+)$/i)
+    if (replaceOrdinalMatch) {
+      const occurrence = parseOccurrenceDescriptor(replaceOrdinalMatch[1])
+      if (occurrence) {
+        return {
+          action: "replace_nth_occurrence",
+          target: normalizePunctuationTarget(replaceOrdinalMatch[2]),
+          text: decodeSpokenPunctuation(replaceOrdinalMatch[3]),
+          cursorPosition: "",
+          shouldApply,
+          confidence,
+          reason: "Commande locale reconnue : remplacement d'occurrence ordinale.",
+          occurrenceIndex: occurrence.occurrenceIndex,
+          occurrenceMode: occurrence.occurrenceMode
+        }
+      }
+    }
+
+    const deleteOrdinalMatch = command.match(/^(?:supprime|supprimer)\s+(?:le|la)\s+(premier|premiere|première|deuxieme|deuxième|second|seconde|dernier|derniere|dernière)\s+(.+)$/i)
+    if (deleteOrdinalMatch) {
+      const occurrence = parseOccurrenceDescriptor(deleteOrdinalMatch[1])
+      if (occurrence) {
+        return {
+          action: "delete_nth_occurrence",
+          target: normalizePunctuationTarget(deleteOrdinalMatch[2]),
+          text: "",
+          cursorPosition: "",
+          shouldApply,
+          confidence,
+          reason: "Commande locale reconnue : suppression d'occurrence ordinale.",
+          occurrenceIndex: occurrence.occurrenceIndex,
+          occurrenceMode: occurrence.occurrenceMode
+        }
+      }
+    }
+
+    const appendEndMatch = command.match(/^(?:ajoute|ajouter|mets|mettre|met)\s+(?:seulement\s+)?(?:(?:le|la)\s+mot\s+|la\s+phrase\s+)?(.+?)\s+a\s+la\s+fin(?:\s+du\s+texte|\s+de\s+page)?$/i)
+      || command.match(/^a\s+la\s+fin\s+(?:ajoute|ajouter|mets|mettre|met)\s+(?:la\s+phrase\s+)?(.+)$/i)
+      || command.match(/^positionne-toi\s+en\s+fin\s+de\s+page\s+et\s+(?:ajoute|ajouter|mets|mettre|met)\s+(?:seulement\s+)?(?:(?:le|la)\s+mot\s+|la\s+phrase\s+)?(.+)$/i)
+    if (appendEndMatch) {
+      return {
+        action: "append_end",
+        target: "",
+        text: decodeSpokenPunctuation(appendEndMatch[1]),
+        cursorPosition: "",
+        shouldApply,
+        confidence,
+        reason: "Commande locale reconnue : ajout en fin."
+      }
+    }
+
+    const replaceMatch = command.match(/^(?:remplace|remplacer|corrige|corriger)\s+(.+?)\s+par\s+(.+)$/i)
+    if (replaceMatch) {
+      return {
+        action: "replace_text",
+        target: replaceMatch[1].trim(),
+        text: decodeSpokenPunctuation(replaceMatch[2]),
+        cursorPosition: "",
+        shouldApply,
+        confidence,
+        reason: "Commande locale reconnue : remplacement."
+      }
+    }
+
+    const deleteMatch = command.match(/^(?:supprime|supprimer)\s+(?:le\s+mot\s+|la\s+phrase\s+)?(.+)$/i)
+    if (deleteMatch && !/\b(paragraphe|premier|dernier|deuxieme|deuxième)\b/i.test(deleteMatch[1])) {
+      return {
+        action: "delete_text",
+        target: decodeSpokenPunctuation(deleteMatch[1]),
+        text: "",
+        cursorPosition: "",
+        shouldApply,
+        confidence,
+        reason: "Commande locale reconnue : suppression."
+      }
+    }
+
+    const insertBeforeMatch = command.match(/^(?:dans\s+.+?\s+)?(?:ajoute|ajouter|insere|inserer|mets|mettre|met)\s+(.+?)\s+(?:devant|avant)\s+(.+)$/i)
+    if (insertBeforeMatch) {
+      return {
+        action: "insert_before",
+        target: decodeSpokenPunctuation(insertBeforeMatch[2]),
+        text: decodeSpokenPunctuation(insertBeforeMatch[1]),
+        cursorPosition: "",
+        shouldApply,
+        confidence,
+        reason: "Commande locale reconnue : insertion avant cible."
+      }
+    }
+
+    const insertAfterMatch = command.match(/^(?:dans\s+.+?\s+)?(?:ajoute|ajouter|insere|inserer|mets|mettre|met)\s+(.+?)\s+apres\s+(.+)$/i)
+    if (insertAfterMatch) {
+      return {
+        action: "insert_after",
+        target: decodeSpokenPunctuation(insertAfterMatch[2].replace(/\s+sans\s+supprimer.+$/i, "")),
+        text: decodeSpokenPunctuation(insertAfterMatch[1]),
+        cursorPosition: "",
+        shouldApply,
+        confidence,
+        reason: "Commande locale reconnue : insertion après cible."
+      }
+    }
+
+    const uppercaseWordMatch = command.match(/^(?:mets|mettre|met)\s+(.+?)\s+en\s+majuscules?$/i)
+    if (uppercaseWordMatch) {
+      return {
+        action: "uppercase_target",
+        target: cleanupTargetCandidate(decodeSpokenPunctuation(uppercaseWordMatch[1])),
+        text: "",
+        cursorPosition: "",
+        shouldApply,
+        confidence,
+        reason: "Commande locale reconnue : passage en majuscules."
+      }
+    }
+
+    const capitalizeMatch = command.match(/^(?:mets|mettre|met)\s+une\s+majuscule\s+a\s+(.+)$/i)
+    if (capitalizeMatch) {
+      return {
+        action: "capitalize_target",
+        target: cleanupTargetCandidate(decodeSpokenPunctuation(capitalizeMatch[1])),
+        text: "",
+        cursorPosition: "",
+        shouldApply,
+        confidence,
+        reason: "Commande locale reconnue : mise en capitale initiale."
+      }
+    }
+
+    const lowercaseWordMatch = command.match(/^(?:mets|mettre|met)\s+(.+?)\s+en\s+minuscules?$/i)
+    if (lowercaseWordMatch) {
+      return {
+        action: "lowercase_target",
+        target: cleanupTargetCandidate(decodeSpokenPunctuation(lowercaseWordMatch[1])),
+        text: "",
+        cursorPosition: "",
+        shouldApply,
+        confidence,
+        reason: "Commande locale reconnue : passage en minuscules."
+      }
+    }
+
+    const lineBreakBeforeMatch = command.match(/^(?:mets|mettre|met|fais|faire)\s+(?:un\s+)?retour\s+a\s+la\s+ligne\s+avant\s+(.+)$/i)
+    if (lineBreakBeforeMatch) {
+      return {
+        action: "insert_line_break_before_target",
+        target: cleanupTargetCandidate(decodeSpokenPunctuation(lineBreakBeforeMatch[1])),
+        text: "",
+        cursorPosition: "",
+        shouldApply,
+        confidence,
+        reason: "Commande locale reconnue : retour à la ligne avant cible."
+      }
+    }
+
+    const lineBreakAfterMatch = command.match(/^(?:mets|mettre|met|fais|faire)\s+(?:un\s+)?retour\s+a\s+la\s+ligne\s+apres\s+(.+)$/i)
+    if (lineBreakAfterMatch) {
+      return {
+        action: "insert_line_break_after_target",
+        target: cleanupTargetCandidate(decodeSpokenPunctuation(lineBreakAfterMatch[1])),
+        text: "",
+        cursorPosition: "",
+        shouldApply,
+        confidence,
+        reason: "Commande locale reconnue : retour à la ligne après cible."
+      }
+    }
+
+    const paragraphBeforeMatch = command.match(/^(?:fais|faire)\s+un\s+nouveau\s+paragraphe\s+avant\s+(.+)$/i)
+    if (paragraphBeforeMatch) {
+      return {
+        action: "insert_paragraph_before_target",
+        target: cleanupTargetCandidate(decodeSpokenPunctuation(paragraphBeforeMatch[1])),
+        text: "",
+        cursorPosition: "",
+        shouldApply,
+        confidence,
+        reason: "Commande locale reconnue : nouveau paragraphe avant cible."
+      }
+    }
+
+    const insertStartMatch = command.match(/^au\s+debut\s+du\s+texte\s+(?:ajoute|ajouter|mets|mettre|met)\s+(.+)$/i)
+    if (insertStartMatch) {
+      return {
+        action: "insert_at_start",
+        target: "",
+        text: `${decodeSpokenPunctuation(insertStartMatch[1])}\n`,
+        cursorPosition: "",
+        shouldApply,
+        confidence,
+        reason: "Commande locale reconnue : insertion au début."
+      }
+    }
+
+    const colonBetweenMatch = command.match(/^(?:mets|mettre|met)\s+deux\s+points\s+entre\s+(.+?)\s+et\s+(.+)$/i)
+    if (colonBetweenMatch) {
+      return {
+        action: "insert_after",
+        target: decodeSpokenPunctuation(colonBetweenMatch[1]),
+        text: ":",
+        cursorPosition: "",
+        shouldApply,
+        confidence,
+        reason: "Commande locale reconnue : deux-points après la première cible."
+      }
+    }
+
+    const commaAfterMatch = command.match(/^(?:ajoute|ajouter|mets|mettre|met)\s+une\s+virgule\s+apres\s+(.+)$/i)
+    if (commaAfterMatch) {
+      return {
+        action: "insert_after",
+        target: decodeSpokenPunctuation(commaAfterMatch[1]),
+        text: ",",
+        cursorPosition: "",
+        shouldApply,
+        confidence,
+        reason: "Commande locale reconnue : virgule après cible."
+      }
+    }
+
+    const pointQuestionEndMatch = command.match(/^(?:mets|mettre|met)\s+un\s+point\s+d'interrogation\s+a\s+la\s+fin(?:\s+du\s+texte|\s+de\s+la\s+phrase)?$/i)
+    if (pointQuestionEndMatch) {
+      return {
+        action: "append_end",
+        target: "",
+        text: "?",
+        cursorPosition: "",
+        shouldApply,
+        confidence,
+        reason: "Commande locale reconnue : point d'interrogation final."
+      }
+    }
+
+    const pointEndMatch = command.match(/^(?:ajoute|ajouter|mets|mettre|met)\s+un\s+point\s+a\s+la\s+fin(?:\s+du\s+texte|\s+de\s+la\s+phrase)?$/i)
+    if (pointEndMatch) {
+      return {
+        action: "append_end",
+        target: "",
+        text: ".",
+        cursorPosition: "",
+        shouldApply,
+        confidence,
+        reason: "Commande locale reconnue : point final."
+      }
+    }
+
+    return null
+  }
+
   async function requestVoiceEditCommand(payload = {}, options = {}) {
+    const localCommand = buildLocalVoiceEditCommand(payload)
+    if (localCommand) {
+      return localCommand
+    }
+
     const response = await fetch("/api/mail/voice-edit-command", {
       method: "POST",
       credentials: "same-origin",
@@ -1964,6 +2300,26 @@
     }
 
     findTargetInText(value, target) {
+      const normalizedTarget = cleanupTargetCandidate(target)
+      const candidates = Array.from(new Set([
+        normalizedTarget,
+        normalizedTarget.replace(/[.,;:!?]+$/g, "").trim(),
+        normalizedTarget.replace(/\s+/g, " ").trim(),
+        normalizedTarget.replace(/-/g, " ").trim(),
+        normalizedTarget.replace(/\s+/g, "-").trim()
+      ].filter(Boolean)))
+
+      for (const candidate of candidates) {
+        const direct = this.findTargetInTextByCandidate(value, candidate)
+        if (direct.index !== -1) {
+          return direct
+        }
+      }
+
+      return { index: -1, length: 0, ambiguous: false }
+    }
+
+    findTargetInTextByCandidate(value, target) {
       const first = value.indexOf(target)
       if (first !== -1) {
         const second = value.indexOf(target, first + target.length)
@@ -1976,7 +2332,104 @@
         const secondCI = valueLower.indexOf(targetLower, firstCI + targetLower.length)
         return { index: firstCI, length: targetLower.length, ambiguous: secondCI !== -1 }
       }
+      if (/[-\s]/.test(target)) {
+        try {
+          const tokens = target.split(/[-\s]+/).filter(Boolean)
+          if (tokens.length > 1) {
+            const pattern = tokens.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("[-\\s]+")
+            const rx = new RegExp(pattern, "i")
+            const m = rx.exec(value)
+            if (m) {
+              const second = rx.exec(value.slice(m.index + m[0].length))
+              return { index: m.index, length: m[0].length, ambiguous: second !== null }
+            }
+          }
+        } catch (_) { /* ignore invalid regex */ }
+      }
       return { index: -1, length: 0, ambiguous: false }
+    }
+
+    findTargetOccurrencesInText(value, target) {
+      const normalizedTarget = String(target || "")
+      if (!normalizedTarget) {
+        return []
+      }
+
+      const exactMatches = []
+      let cursor = value.indexOf(normalizedTarget)
+      while (cursor !== -1) {
+        exactMatches.push({ index: cursor, length: normalizedTarget.length })
+        cursor = value.indexOf(normalizedTarget, cursor + Math.max(1, normalizedTarget.length))
+      }
+      if (exactMatches.length) {
+        return exactMatches
+      }
+
+      const valueLower = value.toLowerCase()
+      const targetLower = normalizedTarget.toLowerCase()
+      const insensitiveMatches = []
+      cursor = valueLower.indexOf(targetLower)
+      while (cursor !== -1) {
+        insensitiveMatches.push({ index: cursor, length: targetLower.length })
+        cursor = valueLower.indexOf(targetLower, cursor + Math.max(1, targetLower.length))
+      }
+      return insensitiveMatches
+    }
+
+    resolveOccurrenceMatch(value, target, occurrenceIndex = 0, occurrenceMode = "") {
+      const matches = this.findTargetOccurrencesInText(value, target)
+      if (!matches.length) {
+        throw new Error("Texte cible introuvable dans la zone courante.")
+      }
+      if (occurrenceMode === "last") {
+        return matches[matches.length - 1]
+      }
+      if (occurrenceIndex > 0) {
+        if (occurrenceIndex > matches.length) {
+          throw new Error("Occurrence demandee introuvable dans la zone courante.")
+        }
+        return matches[occurrenceIndex - 1]
+      }
+      if (matches.length > 1) {
+        throw new Error("Cible ambigue dans la zone courante.")
+      }
+      return matches[0]
+    }
+
+    transformExactText(target, transformer, emptyErrorMessage = "Transformation impossible.") {
+      const value = String(this.textElement?.value || "")
+      const normalizedTarget = String(target || "").trim()
+      if (!normalizedTarget) {
+        throw new Error("Texte cible manquant.")
+      }
+      const found = this.findTargetInText(value, normalizedTarget)
+      if (found.index === -1) {
+        throw new Error("Texte cible introuvable dans la zone courante.")
+      }
+      if (found.ambiguous) {
+        throw new Error("Cible ambigue dans la zone courante.")
+      }
+      const current = value.slice(found.index, found.index + found.length)
+      const replacement = String(transformer(current) || "")
+      if (!replacement) {
+        throw new Error(emptyErrorMessage)
+      }
+      this.replaceExactRange(found.index, found.index + found.length, replacement)
+    }
+
+    replaceExactRange(start, end, replacement) {
+      const value = String(this.textElement?.value || "")
+      const prefix = value.slice(0, start)
+      const suffix = value.slice(end)
+      const nextValue = `${prefix}${replacement}${suffix}`
+      const caret = prefix.length + String(replacement || "").length
+      this.textElement.value = nextValue
+      this.textElement.focus()
+      this.textElement.setSelectionRange(caret, caret)
+      this.rememberAppliedCaret(caret, caret)
+      this.lastSelectionStart = caret
+      this.lastSelectionEnd = caret
+      this.textElement.dispatchEvent(new Event("input", { bubbles: true }))
     }
 
     replaceExactText(target, replacement) {
@@ -1993,9 +2446,18 @@
       if (found.ambiguous) {
         throw new Error("Cible ambigue dans la zone courante.")
       }
-      this.lastSelectionStart = found.index
-      this.lastSelectionEnd = found.index + found.length
-      this.replaceSelection(normalizedReplacement)
+      this.replaceExactRange(found.index, found.index + found.length, normalizedReplacement)
+    }
+
+    replaceNthOccurrence(target, replacement, occurrenceIndex = 0, occurrenceMode = "") {
+      const value = String(this.textElement?.value || "")
+      const normalizedTarget = String(target || "")
+      const normalizedReplacement = String(replacement || "").trim()
+      if (!normalizedTarget || !normalizedReplacement) {
+        throw new Error("Cible ou remplacement manquant.")
+      }
+      const found = this.resolveOccurrenceMatch(value, normalizedTarget, occurrenceIndex, occurrenceMode)
+      this.replaceExactRange(found.index, found.index + found.length, normalizedReplacement)
     }
 
     deleteExactText(target) {
@@ -2011,9 +2473,17 @@
       if (found.ambiguous) {
         throw new Error("Cible ambigue dans la zone courante.")
       }
-      this.lastSelectionStart = found.index
-      this.lastSelectionEnd = found.index + found.length
-      this.replaceSelection("")
+      this.replaceExactRange(found.index, found.index + found.length, "")
+    }
+
+    deleteNthOccurrence(target, occurrenceIndex = 0, occurrenceMode = "") {
+      const value = String(this.textElement?.value || "")
+      const normalizedTarget = String(target || "").trim()
+      if (!normalizedTarget) {
+        throw new Error("Texte cible a supprimer manquant.")
+      }
+      const found = this.resolveOccurrenceMatch(value, normalizedTarget, occurrenceIndex, occurrenceMode)
+      this.replaceExactRange(found.index, found.index + found.length, "")
     }
 
     insertAroundTarget(target, text, position = "before") {
@@ -2060,6 +2530,35 @@
       this.lastSelectionStart = caret
       this.lastSelectionEnd = caret
       this.textElement.dispatchEvent(new Event("input", { bubbles: true }))
+    }
+
+    insertLineBreakAroundTarget(target, position = "before", count = 1) {
+      const value = String(this.textElement?.value || "")
+      const normalizedTarget = String(target || "").trim()
+      if (!normalizedTarget) {
+        throw new Error("Texte cible manquant pour le retour à la ligne.")
+      }
+      const found = this.findTargetInText(value, normalizedTarget)
+      if (found.index === -1) {
+        throw new Error("Texte cible introuvable dans la zone courante.")
+      }
+      if (found.ambiguous) {
+        throw new Error("Cible ambigue dans la zone courante.")
+      }
+      const breaks = "\n".repeat(Math.max(1, count))
+      const insertIndex = position === "after" ? found.index + found.length : found.index
+      this.lastSelectionStart = insertIndex
+      this.lastSelectionEnd = insertIndex
+      this.insertAtCursor(breaks)
+    }
+
+    insertAtStart(text) {
+      if (!this.textElement) {
+        return
+      }
+      this.lastSelectionStart = 0
+      this.lastSelectionEnd = 0
+      this.insertAtCursor(text)
     }
 
     moveCaret(target = "", position = "before") {
@@ -2121,6 +2620,8 @@
       const target = String(command.target || "").trim()
       const text = String(command.text || "").trim()
       const cursorPosition = String(command.cursorPosition || "").trim()
+      const occurrenceIndex = Number.isFinite(Number(command.occurrenceIndex)) ? Number(command.occurrenceIndex) : 0
+      const occurrenceMode = String(command.occurrenceMode || "").trim()
       const shouldApply = Boolean(command.shouldApply)
       if (!shouldApply || action === "none") {
         throw new Error(command.reason || "Commande trop ambigue pour etre appliquee automatiquement.")
@@ -2132,12 +2633,30 @@
         this.replaceSelection(text)
       } else if (action === "replace_text") {
         this.replaceExactText(target, text)
+      } else if (action === "replace_nth_occurrence") {
+        this.replaceNthOccurrence(target, text, occurrenceIndex, occurrenceMode)
       } else if (action === "delete_text") {
         this.deleteExactText(target)
+      } else if (action === "delete_nth_occurrence") {
+        this.deleteNthOccurrence(target, occurrenceIndex, occurrenceMode)
       } else if (action === "insert_before") {
         this.insertAroundTarget(target, text, "before")
       } else if (action === "insert_after") {
         this.insertAroundTarget(target, text, "after")
+      } else if (action === "uppercase_target") {
+        this.transformExactText(target, (current) => current.toUpperCase(), "Transformation en majuscules impossible.")
+      } else if (action === "lowercase_target") {
+        this.transformExactText(target, (current) => current.toLowerCase(), "Transformation en minuscules impossible.")
+      } else if (action === "capitalize_target") {
+        this.transformExactText(target, (current) => current ? current.charAt(0).toUpperCase() + current.slice(1) : "", "Mise en majuscule initiale impossible.")
+      } else if (action === "insert_line_break_before_target") {
+        this.insertLineBreakAroundTarget(target, "before", 1)
+      } else if (action === "insert_line_break_after_target") {
+        this.insertLineBreakAroundTarget(target, "after", 1)
+      } else if (action === "insert_paragraph_before_target") {
+        this.insertLineBreakAroundTarget(target, "before", 2)
+      } else if (action === "insert_at_start") {
+        this.insertAtStart(text)
       } else if (action === "move_caret") {
         this.moveCaret(target, cursorPosition || "before")
       } else if (action === "insert_line_break") {
@@ -2163,7 +2682,9 @@
         action,
         actionTarget: target,
         actionText: text,
-        cursorPosition
+        cursorPosition,
+        occurrenceIndex,
+        occurrenceMode
       })
 
       this.rebaseCurrentActionFromVisibleText()
@@ -2222,8 +2743,10 @@
     }
 
     buildInsertion(prefix, text, suffix) {
-      const needsLeadingSpace = prefix && !/\s$/.test(prefix)
-      const needsTrailingSpace = suffix && !/^\s/.test(suffix)
+      const startsWithClosingPunctuation = /^[,.;:!?]/.test(text)
+      const containsLineBreak = /[\r\n]/.test(text)
+      const needsLeadingSpace = prefix && !/\s$/.test(prefix) && !startsWithClosingPunctuation && !containsLineBreak
+      const needsTrailingSpace = suffix && !/^\s/.test(suffix) && !containsLineBreak
       const insertionText = `${needsLeadingSpace ? " " : ""}${text}${needsTrailingSpace ? " " : ""}`
       return {
         value: `${prefix}${insertionText}${suffix}`,

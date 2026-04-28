@@ -138,24 +138,47 @@ function buildVoiceEditCommandPrompt(payload = {}) {
   return `
 Tu es un assistant d'edition locale de texte en ${languageLabel}.
 
-Tu dois interpreter une commande vocale d'edition et repondre uniquement en JSON valide.
+IMPORTANT : reponds UNIQUEMENT avec un objet JSON valide. Aucun texte avant, aucun texte apres, aucune explication, aucun commentaire. Seulement le JSON brut.
+
+Tu dois interpreter une commande vocale d'edition et produire le JSON d'action correspondant.
 
 Actions autorisees :
 - "replace_selection"
 - "replace_text"
+- "replace_nth_occurrence"
 - "insert_before"
 - "insert_after"
+- "insert_at_start"
 - "move_caret"
 - "insert_line_break"
+- "insert_line_break_before_target"
+- "insert_line_break_after_target"
+- "insert_paragraph_before_target"
 - "append_end"
 - "delete_selection"
 - "delete_text"
+- "delete_nth_occurrence"
+- "uppercase_target"
+- "lowercase_target"
+- "capitalize_target"
 - "none"
+
+Corrections phonetiques automatiques (la transcription vocale introduit des homophones) :
+- "mais" en debut de commande ou suivi d'une cible = "mets" (homophones parfaits en francais)
+- "met" = "mets"
+- "est place" ou "replace" = "remplace"
+- "efface", "enleve", "retire", "vire" = "supprime"
+- "corrige X en Y" = "remplace X par Y"
+- "insere", "ecris", "tape", "saisis" = synonymes d'action d'insertion
+- "devant" = "avant" = insert_before
+- "derriere", "apres" = insert_after
+- "en debut", "au debut" = insert_at_start
+- "en fin", "a la fin", "au bout" = append_end
 
 Regle Edition vocale :
 - La commande vocale contient generalement une action, une cible et parfois un contenu.
 - Tu dois toujours separer strictement l'action demandee, la cible et le contenu exact a inserer, remplacer ou supprimer.
-- Les mots comme "ajoute", "mets", "insere", "remplace", "supprime", "positionne-toi", "a la fin", "en fin de page", "devant", "avant", "apres" decrivent l'action ou la cible.
+- Les mots comme "ajoute", "mets", "mais", "insere", "remplace", "supprime", "efface", "corrige", "positionne-toi", "a la fin", "en fin de page", "devant", "avant", "apres" decrivent l'action ou la cible.
 - Ces mots de commande ne doivent jamais etre inclus dans le champ "text", sauf si l'utilisateur dit explicitement "ecris exactement".
 - Si l'utilisateur dit "ajoute le mot cordialement a la fin", l'action est "append_end" et le champ "text" vaut seulement "cordialement".
 - Si l'utilisateur dit "positionne-toi en fin de page et ajoute le mot cordialement", l'action est "append_end" et le champ "text" vaut seulement "cordialement".
@@ -163,6 +186,16 @@ Regle Edition vocale :
 - Si l'utilisateur dit "ajoute Bien avant Cordialement", l'action est "insert_before", la cible est "Cordialement" et le champ "text" vaut "Bien". Le mot "avant" indique la position, pas le texte a inserer.
 - Si l'utilisateur dit "insere un espace apres Madame", l'action est "insert_after", la cible est "Madame" et le champ "text" vaut " ".
 - De maniere generale : "ajoute X avant Y" ou "insere X avant Y" → "insert_before", target Y, text X. "ajoute X apres Y" ou "insere X apres Y" → "insert_after", target Y, text X.
+- Si l'utilisateur dit "au debut du texte ajoute Note importante", l'action est "insert_at_start" et le champ "text" contient seulement "Note importante".
+- Si l'utilisateur dit "mets abc123 en majuscules", l'action est "uppercase_target" et la cible vaut "abc123".
+- Si l'utilisateur dit "mets Madame en minuscules", l'action est "lowercase_target" et la cible vaut "Madame".
+- Si l'utilisateur dit "mets une majuscule a bonjour", l'action est "capitalize_target" et la cible vaut "bonjour".
+- Si l'utilisateur dit "remplace le premier beaucoup par enormement", l'action est "replace_nth_occurrence", la cible vaut "beaucoup", le texte vaut "enormement" et "occurrenceIndex" vaut 1.
+- Si l'utilisateur dit "supprime le dernier beaucoup", l'action est "delete_nth_occurrence", la cible vaut "beaucoup" et "occurrenceMode" vaut "last".
+- Si l'utilisateur dit "supprime la deuxieme virgule", l'action est "delete_nth_occurrence", la cible vaut "," et "occurrenceIndex" vaut 2.
+- Si l'utilisateur dit "mets un retour a la ligne avant Cordialement", l'action est "insert_line_break_before_target" et la cible vaut "Cordialement".
+- Si l'utilisateur dit "mets un retour a la ligne apres Madame virgule", l'action est "insert_line_break_after_target" et la cible vaut "Madame,".
+- Si l'utilisateur dit "fais un nouveau paragraphe avant Merci", l'action est "insert_paragraph_before_target" et la cible vaut "Merci".
 - Si l'utilisateur dit simplement "ecris ..." ou "insere ..." sans cible explicite ni mention de fin, l'action par defaut est "replace_selection" et le champ "text" contient seulement le texte a inserer. Si aucune selection n'est active, cela sera insere a l'emplacement courant du curseur.
 - Si l'utilisateur dit "supprime cordialement" ou "supprime le mot cordialement", l'action est "delete_text" et le champ "target" vaut seulement "cordialement".
 - Si l'utilisateur dit "va a la ligne", "a la ligne", "retour a la ligne", "saut de ligne" ou "saute une ligne", l'action est "insert_line_break".
@@ -179,10 +212,19 @@ Regles :
 - Si la commande demande simplement d'ecrire ou d'inserer du texte sans autre precision de cible, utilise "replace_selection". Si la selection est vide, cela signifie une insertion au curseur courant.
 - Si la commande demande d'ajouter a la fin, utilise "append_end".
 - Si la commande demande d'inserer avant ou apres un mot cible, utilise "insert_before" ou "insert_after".
+- Si la commande demande d'inserer au debut du texte, utilise "insert_at_start".
 - Si la commande demande de deplacer ou placer le curseur, utilise "move_caret".
 - Si la commande demande simplement d'aller a la ligne, de faire un retour a la ligne ou un saut de ligne, utilise "insert_line_break".
+- Si la commande demande un retour a la ligne avant une cible, utilise "insert_line_break_before_target".
+- Si la commande demande un retour a la ligne apres une cible, utilise "insert_line_break_after_target".
+- Si la commande demande un nouveau paragraphe avant une cible, utilise "insert_paragraph_before_target".
 - Si la commande demande de remplacer un mot cible explicite, utilise "replace_text".
+- Si la commande demande de remplacer une occurrence ordinale explicite comme premier, deuxieme ou dernier, utilise "replace_nth_occurrence".
 - Si la commande demande de supprimer un mot, une expression ou une phrase cible explicite, utilise "delete_text".
+- Si la commande demande de supprimer une occurrence ordinale explicite comme premier, deuxieme ou dernier, utilise "delete_nth_occurrence".
+- Si la commande demande des majuscules, utilise "uppercase_target".
+- Si la commande demande des minuscules, utilise "lowercase_target".
+- Si la commande demande une majuscule initiale, utilise "capitalize_target".
 - Le champ "text" contient uniquement le texte exact a inserer ou a mettre a la place, jamais l'ordre complet.
 - Le champ "target" contient la cible textuelle exacte si necessaire.
 - Le champ "cursorPosition" vaut seulement "before", "after", "start" ou "end" pour l'action "move_caret".
@@ -190,10 +232,12 @@ Regles :
 
 Structure attendue :
 {
-  "action": "replace_selection|replace_text|insert_before|insert_after|move_caret|insert_line_break|append_end|delete_selection|delete_text|none",
+  "action": "replace_selection|replace_text|replace_nth_occurrence|insert_before|insert_after|insert_at_start|move_caret|insert_line_break|insert_line_break_before_target|insert_line_break_after_target|insert_paragraph_before_target|append_end|delete_selection|delete_text|delete_nth_occurrence|uppercase_target|lowercase_target|capitalize_target|none",
   "target": "texte cible ou vide",
   "text": "texte a inserer ou vide",
   "cursorPosition": "before|after|start|end|vide",
+  "occurrenceIndex": 0,
+  "occurrenceMode": "last|vide",
   "shouldApply": true,
   "confidence": 0.0,
   "reason": "explication courte"
@@ -208,8 +252,21 @@ Contexte :
   `.trim()
 }
 
+function normalizeVoiceCommandHomophones(command) {
+  return String(command || "")
+    .replace(/\bmais\b/gi, "mets")
+    .replace(/\bmet\b(?!\s*[a-z])/gi, "mets")
+    .replace(/\befface\b/gi, "supprime")
+    .replace(/\benleve\b/gi, "supprime")
+    .replace(/\benlève\b/gi, "supprime")
+    .replace(/\bretire\b/gi, "supprime")
+    .replace(/\bcorrige\s+(\S+)\s+en\s+/gi, "remplace $1 par ")
+    .replace(/\btape\b/gi, "insere")
+    .replace(/\bsaisis\b/gi, "insere")
+}
+
 function normalizeVoiceEditAction(raw = {}) {
-  const allowedActions = new Set(["replace_selection", "replace_text", "insert_before", "insert_after", "move_caret", "insert_line_break", "append_end", "delete_selection", "delete_text", "none"])
+  const allowedActions = new Set(["replace_selection", "replace_text", "replace_nth_occurrence", "insert_before", "insert_after", "insert_at_start", "move_caret", "insert_line_break", "insert_line_break_before_target", "insert_line_break_after_target", "insert_paragraph_before_target", "append_end", "delete_selection", "delete_text", "delete_nth_occurrence", "uppercase_target", "lowercase_target", "capitalize_target", "none"])
   const action = allowedActions.has(String(raw.action || "").trim()) ? String(raw.action || "").trim() : "none"
   const allowedCursorPositions = new Set(["before", "after", "start", "end"])
   const cursorPosition = allowedCursorPositions.has(String(raw.cursorPosition || "").trim()) ? String(raw.cursorPosition || "").trim() : ""
@@ -218,6 +275,8 @@ function normalizeVoiceEditAction(raw = {}) {
     target: String(raw.target || "").trim(),
     text: String(raw.text || "").trim(),
     cursorPosition,
+    occurrenceIndex: Number.isFinite(Number(raw.occurrenceIndex)) ? Number(raw.occurrenceIndex) : 0,
+    occurrenceMode: String(raw.occurrenceMode || "").trim() === "last" ? "last" : "",
     shouldApply: Boolean(raw.shouldApply) && action !== "none",
     confidence: Number.isFinite(Number(raw.confidence)) ? Number(raw.confidence) : 0,
     reason: String(raw.reason || "").trim()
@@ -226,7 +285,11 @@ function normalizeVoiceEditAction(raw = {}) {
 
 async function interpretVoiceEditCommand(payload = {}, options = {}) {
   const requestedModel = options.model || "deepseek-chat"
-  const prompt = buildVoiceEditCommandPrompt(payload)
+  const normalizedPayload = {
+    ...payload,
+    command: normalizeVoiceCommandHomophones(String(payload.command || ""))
+  }
+  const prompt = buildVoiceEditCommandPrompt(normalizedPayload)
   const aiRaw = await runAIWithTimeout(requestedModel, prompt, options)
   const parsed = extractJson(aiRaw)
   return {
