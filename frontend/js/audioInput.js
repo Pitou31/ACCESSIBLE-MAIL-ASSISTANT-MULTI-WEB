@@ -2003,7 +2003,7 @@
         return
       }
 
-      const currentMode = this.modeSelect?.value || "cursor"
+      const currentMode = this.correctionMode ? "ai-command" : (this.modeSelect?.value || "cursor")
       const preview = this.transcriptBuffer.length > 80 ? `${this.transcriptBuffer.slice(0, 80)}...` : this.transcriptBuffer
       const usageCost = useLiveProvider ? formatUsageCost(liveUsage) : ""
       const providerLabel = liveProviderMeta?.providerLabel || this.getProviderLabel()
@@ -2107,7 +2107,7 @@
       if (!this.textElement) return false
 
       const normalizedText = String(text || "").trim()
-      const currentMode = this.modeSelect?.value || "cursor"
+      const currentMode = this.correctionMode ? "ai-command" : (this.modeSelect?.value || "cursor")
       if (currentMode === "cursor") {
         const incrementalText = extractIncrementalTranscript(previousText, normalizedText)
         if (!incrementalText) {
