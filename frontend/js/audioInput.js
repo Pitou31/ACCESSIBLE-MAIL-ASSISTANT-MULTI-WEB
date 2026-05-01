@@ -2711,7 +2711,10 @@
       this.lastSelectionEnd = caret
     }
 
-    handleOkAction() {
+    async handleOkAction() {
+      if ((this.state === "recording" || this.state === "paused") && !this.stoppingListening) {
+        try { await this.stopListening({ insert: false }) } catch (_) {}
+      }
       if (this.correctionMode) {
         const correctedCommand = String(this.transcriptionZone?.value || "").trim()
         this.textElement = this.mailTextElement || this.textElement
@@ -2958,7 +2961,7 @@
 
       const busy = this.state === "recording" || this.state === "paused" || this.state === "transcribing"
       const inCorrectionFlow = this.awaitingConfirmation || this.correctionMode
-      if (this.startButton) this.startButton.disabled = disabled || busy || inCorrectionFlow
+      if (this.startButton) this.startButton.disabled = disabled || busy || this.awaitingConfirmation
       if (this.pauseButton) this.pauseButton.disabled = disabled || this.state !== "recording"
       if (this.resumeButton) this.resumeButton.disabled = disabled || this.state !== "paused"
       if (this.stopButton) this.stopButton.disabled = disabled || (this.state !== "recording" && this.state !== "paused")
@@ -2972,8 +2975,8 @@
         this.correctionButton.disabled = busy
       }
       if (this.okButton) {
-        this.okButton.style.display = this.awaitingConfirmation ? "inline-flex" : "none"
-        this.okButton.disabled = busy
+        this.okButton.style.display = inCorrectionFlow ? "inline-flex" : "none"
+        this.okButton.disabled = this.state === "transcribing"
       }
       this.controlsElement.classList.toggle("audio-input-awaiting-confirmation", inCorrectionFlow)
 
