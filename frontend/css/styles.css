@@ -833,7 +833,6 @@ textarea {
 }
 
 .audio-transcription-zone {
-  display: none;
   flex: 1 1 100%;
   min-height: 60px;
   background: rgba(15, 23, 42, 0.30);
@@ -847,14 +846,12 @@ textarea {
 }
 
 .audio-cmd-correction-btn {
-  display: none;
   background: linear-gradient(135deg, #b45309, #f59e0b);
   color: #fff;
   border: none;
 }
 
 .audio-cmd-ok-btn {
-  display: none;
   background: linear-gradient(135deg, #15803d, #22c55e);
   color: #fff;
   border: none;

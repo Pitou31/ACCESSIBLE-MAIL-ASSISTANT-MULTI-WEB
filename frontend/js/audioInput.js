@@ -2964,15 +2964,15 @@
 
       const showConfirm = this.awaitingConfirmation
       if (this.transcriptionZone) {
-        this.transcriptionZone.style.display = showConfirm ? "" : "none"
+        this.transcriptionZone.style.display = showConfirm ? "block" : "none"
         this.transcriptionZone.readOnly = busy
       }
       if (this.correctionButton) {
-        this.correctionButton.style.display = showConfirm ? "" : "none"
+        this.correctionButton.style.display = showConfirm ? "inline-flex" : "none"
         this.correctionButton.disabled = busy
       }
       if (this.okButton) {
-        this.okButton.style.display = showConfirm ? "" : "none"
+        this.okButton.style.display = showConfirm ? "inline-flex" : "none"
         this.okButton.disabled = busy
       }
       this.controlsElement.classList.toggle("audio-input-awaiting-confirmation", showConfirm)
