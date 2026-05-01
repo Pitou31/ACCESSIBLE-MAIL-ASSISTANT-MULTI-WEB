@@ -2956,26 +2956,26 @@
       this.controlsElement.classList.toggle("audio-input-command-ready", this.state === "recording" && this.voiceCommandReady)
 
       const busy = this.state === "recording" || this.state === "paused" || this.state === "transcribing"
-      if (this.startButton) this.startButton.disabled = disabled || busy || this.awaitingConfirmation
+      const inCorrectionFlow = this.awaitingConfirmation || this.correctionMode
+      if (this.startButton) this.startButton.disabled = disabled || busy || inCorrectionFlow
       if (this.pauseButton) this.pauseButton.disabled = disabled || this.state !== "recording"
       if (this.resumeButton) this.resumeButton.disabled = disabled || this.state !== "paused"
       if (this.stopButton) this.stopButton.disabled = disabled || (this.state !== "recording" && this.state !== "paused")
-      if (this.modeSelect) this.modeSelect.disabled = disabled || this.state === "transcribing" || this.awaitingConfirmation
+      if (this.modeSelect) this.modeSelect.disabled = disabled || this.state === "transcribing" || inCorrectionFlow
 
-      const showConfirm = this.awaitingConfirmation
       if (this.transcriptionZone) {
-        this.transcriptionZone.style.display = showConfirm ? "block" : "none"
+        this.transcriptionZone.style.display = inCorrectionFlow ? "block" : "none"
         this.transcriptionZone.readOnly = busy
       }
       if (this.correctionButton) {
-        this.correctionButton.style.display = showConfirm ? "inline-flex" : "none"
+        this.correctionButton.style.display = this.awaitingConfirmation ? "inline-flex" : "none"
         this.correctionButton.disabled = busy
       }
       if (this.okButton) {
-        this.okButton.style.display = showConfirm ? "inline-flex" : "none"
+        this.okButton.style.display = this.awaitingConfirmation ? "inline-flex" : "none"
         this.okButton.disabled = busy
       }
-      this.controlsElement.classList.toggle("audio-input-awaiting-confirmation", showConfirm)
+      this.controlsElement.classList.toggle("audio-input-awaiting-confirmation", inCorrectionFlow)
 
       if (!this.statusElement) return
       if (this.state === "idle") {
