@@ -1145,6 +1145,7 @@
     }
 
     isAiCommandMode() {
+      if (this.correctionMode) return true
       return (this.modeSelect?.value || "cursor") === "ai-command"
     }
 
@@ -2965,7 +2966,6 @@
 
       if (this.transcriptionZone) {
         this.transcriptionZone.style.display = inCorrectionFlow ? "block" : "none"
-        this.transcriptionZone.readOnly = busy
       }
       if (this.correctionButton) {
         this.correctionButton.style.display = this.awaitingConfirmation ? "inline-flex" : "none"
