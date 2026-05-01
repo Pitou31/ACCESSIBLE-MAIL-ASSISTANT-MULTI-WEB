@@ -308,14 +308,22 @@
       .replace(/[\u0300-\u036f]/g, "")
   }
 
+  function replaceSpokenPunctuationTokens(value) {
+    return String(value || "")
+      .replace(/\bpoint d'interrogation\b/gi, "?")
+      .replace(/\bpoint d exclamation\b/gi, "!")
+      .replace(/\bpoint-virgule\b/gi, ";")
+      .replace(/\bpoint virgule\b/gi, ";")
+      .replace(/\bdeux points\b/gi, ":")
+      .replace(/\bvirgule\b/gi, ",")
+      .replace(/\bpoint\b/gi, ".")
+      .replace(/\btiret\b/gi, "-")
+  }
+
   function normalizePunctuationTarget(value) {
-    const normalized = normalizeVoiceCommandForParsing(value)
-    if (normalized === "virgule") return ","
-    if (normalized === "point") return "."
-    if (normalized === "deux points") return ":"
-    if (normalized === "point d'interrogation") return "?"
-    if (normalized === "point d exclamation") return "!"
-    return decodeSpokenPunctuation(value)
+    const normalized = replaceSpokenPunctuationTokens(value)
+      .replace(/\s*([,.;:!?-])\s*/g, "$1")
+    return cleanupTargetCandidate(normalized)
   }
 
   function cleanupTargetCandidate(value) {
@@ -324,6 +332,10 @@
       .replace(/^["“”'«»]+|["“”'«»]+$/g, "")
       .replace(/\s+/g, " ")
       .trim()
+  }
+
+  function targetRequiresStrictMatch(value) {
+    return /[.,;:!?()[\]{}"'«»“”\-_/\\@#&*+=<>%]/.test(String(value || ""))
   }
 
   function applyTranscriptionCommandHeuristics(value) {
@@ -350,21 +362,38 @@
   }
 
   function decodeSpokenPunctuation(value) {
-    return String(value || "")
-      .replace(/\bvirgule\b/gi, ",")
-      .replace(/\bpoint d'interrogation\b/gi, "?")
-      .replace(/\bpoint d exclamation\b/gi, "!")
-      .replace(/\bpoint\b/gi, ".")
-      .replace(/\bdeux points\b/gi, ":")
+    return replaceSpokenPunctuationTokens(value)
       .replace(/\s+([,.;:!?])/g, "$1")
       .trim()
   }
 
+  function sanitizeCommandTranscriptEnding(value) {
+    return String(value || "")
+      .trim()
+      .replace(/((?:\bvirgule\b|\bpoint\b|\bdeux points\b|\bpoint d'interrogation\b|\bpoint d exclamation\b|\bpoint-virgule\b|\bpoint virgule\b|\btiret\b))([.?!]+)$/i, "$1")
+      .trim()
+  }
+
   function buildLocalVoiceEditCommand(payload = {}) {
-    const commandRaw = String(payload.command || "").trim()
+    const commandRaw = sanitizeCommandTranscriptEnding(String(payload.command || ""))
+    const commandForMatching = applyTranscriptionCommandHeuristics(commandRaw)
+      .replace(/[“”«»"]/g, "\"")
+      .replace(/[’']/g, "'")
+      .replace(/\s+/g, " ")
+      .trim()
     const command = normalizeVoiceCommandForParsing(commandRaw)
     if (!command) {
       return null
+    }
+
+    const traceLocalCommand = (label, details = {}) => {
+      console.info("[voice-edit-local]", {
+        label,
+        commandRaw,
+        commandForMatching,
+        commandNormalized: command,
+        ...details
+      })
     }
 
     const shouldApply = true
@@ -384,11 +413,11 @@
       return null
     }
 
-    const replaceOrdinalMatch = command.match(/^(?:remplace|remplacer)\s+(?:le|la)\s+(premier|premiere|première|deuxieme|deuxième|second|seconde|dernier|derniere|dernière)\s+(.+?)\s+par\s+(.+)$/i)
+    const replaceOrdinalMatch = commandForMatching.match(/^(?:remplace|remplacer)\s+(?:le|la)\s+(premier|premiere|première|deuxieme|deuxième|second|seconde|dernier|derniere|dernière)\s+(.+?)\s+par\s+(.+)$/i)
     if (replaceOrdinalMatch) {
       const occurrence = parseOccurrenceDescriptor(replaceOrdinalMatch[1])
       if (occurrence) {
-        return {
+        const result = {
           action: "replace_nth_occurrence",
           target: normalizePunctuationTarget(replaceOrdinalMatch[2]),
           text: decodeSpokenPunctuation(replaceOrdinalMatch[3]),
@@ -399,14 +428,16 @@
           occurrenceIndex: occurrence.occurrenceIndex,
           occurrenceMode: occurrence.occurrenceMode
         }
+        traceLocalCommand("replace_nth_occurrence", result)
+        return result
       }
     }
 
-    const deleteOrdinalMatch = command.match(/^(?:supprime|supprimer)\s+(?:le|la)\s+(premier|premiere|première|deuxieme|deuxième|second|seconde|dernier|derniere|dernière)\s+(.+)$/i)
+    const deleteOrdinalMatch = commandForMatching.match(/^(?:supprime|supprimer)\s+(?:le|la)\s+(premier|premiere|première|deuxieme|deuxième|second|seconde|dernier|derniere|dernière)\s+(.+)$/i)
     if (deleteOrdinalMatch) {
       const occurrence = parseOccurrenceDescriptor(deleteOrdinalMatch[1])
       if (occurrence) {
-        return {
+        const result = {
           action: "delete_nth_occurrence",
           target: normalizePunctuationTarget(deleteOrdinalMatch[2]),
           text: "",
@@ -417,14 +448,16 @@
           occurrenceIndex: occurrence.occurrenceIndex,
           occurrenceMode: occurrence.occurrenceMode
         }
+        traceLocalCommand("delete_nth_occurrence", result)
+        return result
       }
     }
 
-    const appendEndMatch = command.match(/^(?:ajoute|ajouter|mets|mettre|met)\s+(?:seulement\s+)?(?:(?:le|la)\s+mot\s+|la\s+phrase\s+)?(.+?)\s+a\s+la\s+fin(?:\s+du\s+texte|\s+de\s+page)?$/i)
-      || command.match(/^a\s+la\s+fin\s+(?:ajoute|ajouter|mets|mettre|met)\s+(?:la\s+phrase\s+)?(.+)$/i)
-      || command.match(/^positionne-toi\s+en\s+fin\s+de\s+page\s+et\s+(?:ajoute|ajouter|mets|mettre|met)\s+(?:seulement\s+)?(?:(?:le|la)\s+mot\s+|la\s+phrase\s+)?(.+)$/i)
+    const appendEndMatch = commandForMatching.match(/^(?:ajoute|ajouter|mets|mettre|met)\s+(?:seulement\s+)?(?:(?:le|la)\s+mot\s+|la\s+phrase\s+)?(.+?)\s+a\s+la\s+fin(?:\s+du\s+texte|\s+de\s+page)?$/i)
+      || commandForMatching.match(/^a\s+la\s+fin\s+(?:ajoute|ajouter|mets|mettre|met)\s+(?:la\s+phrase\s+)?(.+)$/i)
+      || commandForMatching.match(/^positionne-toi\s+en\s+fin\s+de\s+page\s+et\s+(?:ajoute|ajouter|mets|mettre|met)\s+(?:seulement\s+)?(?:(?:le|la)\s+mot\s+|la\s+phrase\s+)?(.+)$/i)
     if (appendEndMatch) {
-      return {
+      const result = {
         action: "append_end",
         target: "",
         text: decodeSpokenPunctuation(appendEndMatch[1]),
@@ -433,63 +466,73 @@
         confidence,
         reason: "Commande locale reconnue : ajout en fin."
       }
+      traceLocalCommand("append_end", result)
+      return result
     }
 
-    const replaceMatch = command.match(/^(?:remplace|remplacer|corrige|corriger)\s+(.+?)\s+par\s+(.+)$/i)
+    const replaceMatch = commandForMatching.match(/^(?:remplace|remplacer|corrige|corriger)\s+(.+?)\s+par\s+(.+)$/i)
     if (replaceMatch) {
-      return {
+      const result = {
         action: "replace_text",
-        target: replaceMatch[1].trim(),
+        target: normalizePunctuationTarget(replaceMatch[1]),
         text: decodeSpokenPunctuation(replaceMatch[2]),
         cursorPosition: "",
         shouldApply,
         confidence,
         reason: "Commande locale reconnue : remplacement."
       }
+      traceLocalCommand("replace_text", result)
+      return result
     }
 
-    const deleteMatch = command.match(/^(?:supprime|supprimer)\s+(?:le\s+mot\s+|la\s+phrase\s+)?(.+)$/i)
+    const deleteMatch = commandForMatching.match(/^(?:supprime|supprimer)\s+(?:le\s+mot\s+|la\s+phrase\s+)?(.+)$/i)
     if (deleteMatch && !/\b(paragraphe|premier|dernier|deuxieme|deuxième)\b/i.test(deleteMatch[1])) {
-      return {
+      const result = {
         action: "delete_text",
-        target: decodeSpokenPunctuation(deleteMatch[1]),
+        target: normalizePunctuationTarget(deleteMatch[1]),
         text: "",
         cursorPosition: "",
         shouldApply,
         confidence,
         reason: "Commande locale reconnue : suppression."
       }
+      traceLocalCommand("delete_text", result)
+      return result
     }
 
-    const insertBeforeMatch = command.match(/^(?:dans\s+.+?\s+)?(?:ajoute|ajouter|insere|inserer|mets|mettre|met)\s+(.+?)\s+(?:devant|avant)\s+(.+)$/i)
+    const insertBeforeMatch = commandForMatching.match(/^(?:dans\s+.+?\s+)?(?:ajoute|ajouter|insere|inserer|mets|mettre|met)\s+(.+?)\s+(?:devant|avant)\s+(.+)$/i)
     if (insertBeforeMatch) {
-      return {
+      const result = {
         action: "insert_before",
-        target: decodeSpokenPunctuation(insertBeforeMatch[2]),
+        target: normalizePunctuationTarget(insertBeforeMatch[2]),
         text: decodeSpokenPunctuation(insertBeforeMatch[1]),
         cursorPosition: "",
         shouldApply,
         confidence,
         reason: "Commande locale reconnue : insertion avant cible."
       }
+      traceLocalCommand("insert_before", result)
+      return result
     }
 
-    const insertAfterMatch = command.match(/^(?:dans\s+.+?\s+)?(?:ajoute|ajouter|insere|inserer|mets|mettre|met)\s+(.+?)\s+apres\s+(.+)$/i)
+    const insertAfterMatch = commandForMatching.match(/^(?:dans\s+.+?\s+)?(?:ajoute|ajouter|insere|inserer|mets|mettre|met)\s+(.+?)\s+apr[eè]s\s+(.+)$/i)
     if (insertAfterMatch) {
-      return {
+      const result = {
         action: "insert_after",
-        target: decodeSpokenPunctuation(insertAfterMatch[2].replace(/\s+sans\s+supprimer.+$/i, "")),
+        target: normalizePunctuationTarget(insertAfterMatch[2].replace(/\s+sans\s+supprimer.+$/i, "")),
         text: decodeSpokenPunctuation(insertAfterMatch[1]),
         cursorPosition: "",
         shouldApply,
         confidence,
         reason: "Commande locale reconnue : insertion après cible."
       }
+      traceLocalCommand("insert_after", result)
+      return result
     }
 
-    const uppercaseWordMatch = command.match(/^(?:mets|mettre|met)\s+(.+?)\s+en\s+majuscules?$/i)
+    const uppercaseWordMatch = commandForMatching.match(/^(?:mets|mettre|met)\s+(.+?)\s+en\s+majuscules?$/i)
     if (uppercaseWordMatch) {
-      return {
+      const result = {
         action: "uppercase_target",
         target: cleanupTargetCandidate(decodeSpokenPunctuation(uppercaseWordMatch[1])),
         text: "",
@@ -498,11 +541,13 @@
         confidence,
         reason: "Commande locale reconnue : passage en majuscules."
       }
+      traceLocalCommand("uppercase_target", result)
+      return result
     }
 
-    const capitalizeMatch = command.match(/^(?:mets|mettre|met)\s+une\s+majuscule\s+a\s+(.+)$/i)
+    const capitalizeMatch = commandForMatching.match(/^(?:mets|mettre|met)\s+une\s+majuscule\s+[aà]\s+(.+)$/i)
     if (capitalizeMatch) {
-      return {
+      const result = {
         action: "capitalize_target",
         target: cleanupTargetCandidate(decodeSpokenPunctuation(capitalizeMatch[1])),
         text: "",
@@ -511,11 +556,13 @@
         confidence,
         reason: "Commande locale reconnue : mise en capitale initiale."
       }
+      traceLocalCommand("capitalize_target", result)
+      return result
     }
 
-    const lowercaseWordMatch = command.match(/^(?:mets|mettre|met)\s+(.+?)\s+en\s+minuscules?$/i)
+    const lowercaseWordMatch = commandForMatching.match(/^(?:mets|mettre|met)\s+(.+?)\s+en\s+minuscules?$/i)
     if (lowercaseWordMatch) {
-      return {
+      const result = {
         action: "lowercase_target",
         target: cleanupTargetCandidate(decodeSpokenPunctuation(lowercaseWordMatch[1])),
         text: "",
@@ -524,11 +571,13 @@
         confidence,
         reason: "Commande locale reconnue : passage en minuscules."
       }
+      traceLocalCommand("lowercase_target", result)
+      return result
     }
 
-    const lineBreakBeforeMatch = command.match(/^(?:mets|mettre|met|fais|faire)\s+(?:un\s+)?retour\s+a\s+la\s+ligne\s+avant\s+(.+)$/i)
+    const lineBreakBeforeMatch = commandForMatching.match(/^(?:mets|mettre|met|fais|faire)\s+(?:un\s+)?retour\s+[aà]\s+la\s+ligne\s+avant\s+(.+)$/i)
     if (lineBreakBeforeMatch) {
-      return {
+      const result = {
         action: "insert_line_break_before_target",
         target: cleanupTargetCandidate(decodeSpokenPunctuation(lineBreakBeforeMatch[1])),
         text: "",
@@ -537,11 +586,13 @@
         confidence,
         reason: "Commande locale reconnue : retour à la ligne avant cible."
       }
+      traceLocalCommand("insert_line_break_before_target", result)
+      return result
     }
 
-    const lineBreakAfterMatch = command.match(/^(?:mets|mettre|met|fais|faire)\s+(?:un\s+)?retour\s+a\s+la\s+ligne\s+apres\s+(.+)$/i)
+    const lineBreakAfterMatch = commandForMatching.match(/^(?:mets|mettre|met|fais|faire)\s+(?:un\s+)?retour\s+[aà]\s+la\s+ligne\s+apr[eè]s\s+(.+)$/i)
     if (lineBreakAfterMatch) {
-      return {
+      const result = {
         action: "insert_line_break_after_target",
         target: cleanupTargetCandidate(decodeSpokenPunctuation(lineBreakAfterMatch[1])),
         text: "",
@@ -550,11 +601,13 @@
         confidence,
         reason: "Commande locale reconnue : retour à la ligne après cible."
       }
+      traceLocalCommand("insert_line_break_after_target", result)
+      return result
     }
 
-    const paragraphBeforeMatch = command.match(/^(?:fais|faire)\s+un\s+nouveau\s+paragraphe\s+avant\s+(.+)$/i)
+    const paragraphBeforeMatch = commandForMatching.match(/^(?:fais|faire)\s+un\s+nouveau\s+paragraphe\s+avant\s+(.+)$/i)
     if (paragraphBeforeMatch) {
-      return {
+      const result = {
         action: "insert_paragraph_before_target",
         target: cleanupTargetCandidate(decodeSpokenPunctuation(paragraphBeforeMatch[1])),
         text: "",
@@ -563,11 +616,13 @@
         confidence,
         reason: "Commande locale reconnue : nouveau paragraphe avant cible."
       }
+      traceLocalCommand("insert_paragraph_before_target", result)
+      return result
     }
 
-    const insertStartMatch = command.match(/^au\s+debut\s+du\s+texte\s+(?:ajoute|ajouter|mets|mettre|met)\s+(.+)$/i)
+    const insertStartMatch = commandForMatching.match(/^au\s+debut\s+du\s+texte\s+(?:ajoute|ajouter|mets|mettre|met)\s+(.+)$/i)
     if (insertStartMatch) {
-      return {
+      const result = {
         action: "insert_at_start",
         target: "",
         text: `${decodeSpokenPunctuation(insertStartMatch[1])}\n`,
@@ -576,37 +631,43 @@
         confidence,
         reason: "Commande locale reconnue : insertion au début."
       }
+      traceLocalCommand("insert_at_start", result)
+      return result
     }
 
-    const colonBetweenMatch = command.match(/^(?:mets|mettre|met)\s+deux\s+points\s+entre\s+(.+?)\s+et\s+(.+)$/i)
+    const colonBetweenMatch = commandForMatching.match(/^(?:mets|mettre|met)\s+deux\s+points\s+entre\s+(.+?)\s+et\s+(.+)$/i)
     if (colonBetweenMatch) {
-      return {
+      const result = {
         action: "insert_after",
-        target: decodeSpokenPunctuation(colonBetweenMatch[1]),
+        target: normalizePunctuationTarget(colonBetweenMatch[1]),
         text: ":",
         cursorPosition: "",
         shouldApply,
         confidence,
         reason: "Commande locale reconnue : deux-points après la première cible."
       }
+      traceLocalCommand("colon_between", result)
+      return result
     }
 
-    const commaAfterMatch = command.match(/^(?:ajoute|ajouter|mets|mettre|met)\s+une\s+virgule\s+apres\s+(.+)$/i)
+    const commaAfterMatch = commandForMatching.match(/^(?:ajoute|ajouter|mets|mettre|met)\s+une\s+virgule\s+apr[eè]s\s+(.+)$/i)
     if (commaAfterMatch) {
-      return {
+      const result = {
         action: "insert_after",
-        target: decodeSpokenPunctuation(commaAfterMatch[1]),
+        target: normalizePunctuationTarget(commaAfterMatch[1]),
         text: ",",
         cursorPosition: "",
         shouldApply,
         confidence,
         reason: "Commande locale reconnue : virgule après cible."
       }
+      traceLocalCommand("comma_after", result)
+      return result
     }
 
-    const pointQuestionEndMatch = command.match(/^(?:mets|mettre|met)\s+un\s+point\s+d'interrogation\s+a\s+la\s+fin(?:\s+du\s+texte|\s+de\s+la\s+phrase)?$/i)
+    const pointQuestionEndMatch = commandForMatching.match(/^(?:mets|mettre|met)\s+un\s+point\s+d'interrogation\s+[aà]\s+la\s+fin(?:\s+du\s+texte|\s+de\s+la\s+phrase)?$/i)
     if (pointQuestionEndMatch) {
-      return {
+      const result = {
         action: "append_end",
         target: "",
         text: "?",
@@ -615,11 +676,13 @@
         confidence,
         reason: "Commande locale reconnue : point d'interrogation final."
       }
+      traceLocalCommand("append_question", result)
+      return result
     }
 
-    const pointEndMatch = command.match(/^(?:ajoute|ajouter|mets|mettre|met)\s+un\s+point\s+a\s+la\s+fin(?:\s+du\s+texte|\s+de\s+la\s+phrase)?$/i)
+    const pointEndMatch = commandForMatching.match(/^(?:ajoute|ajouter|mets|mettre|met)\s+un\s+point\s+[aà]\s+la\s+fin(?:\s+du\s+texte|\s+de\s+la\s+phrase)?$/i)
     if (pointEndMatch) {
-      return {
+      const result = {
         action: "append_end",
         target: "",
         text: ".",
@@ -628,6 +691,8 @@
         confidence,
         reason: "Commande locale reconnue : point final."
       }
+      traceLocalCommand("append_point", result)
+      return result
     }
 
     return null
@@ -890,6 +955,9 @@
       this.stoppingListening = false
       this.appliedCaretStart = null
       this.appliedCaretEnd = null
+      this.awaitingConfirmation = false
+      this.correctionMode = false
+      this.mailTextElement = null
       this.bind()
       this.refreshBackendStatus()
       this.render()
@@ -902,6 +970,12 @@
       this.stopButton = this.controlsElement.querySelector("[data-audio-input-stop]")
       this.modeSelect = this.controlsElement.querySelector("[data-audio-input-mode]")
       this.statusElement = this.controlsElement.querySelector("[data-audio-input-status]")
+      this.transcriptionZone = this.controlsElement.querySelector("[data-audio-transcription-zone]")
+      this.correctionButton = this.controlsElement.querySelector("[data-audio-cmd-correction]")
+      this.okButton = this.controlsElement.querySelector("[data-audio-cmd-ok]")
+
+      this.correctionButton?.addEventListener("click", () => this.handleCorrectionAction())
+      this.okButton?.addEventListener("click", () => this.handleOkAction())
 
       this.startButton?.addEventListener("mousedown", (event) => {
         event.preventDefault()
@@ -1935,49 +2009,45 @@
       const providerLabel = liveProviderMeta?.providerLabel || this.getProviderLabel()
 
       if (currentMode === "ai-command") {
-        try {
-          await this.applyVoiceEditCommand(this.transcriptBuffer)
+        const commandText = this.transcriptBuffer
+        this.pendingVoiceCommandText = ""
+        this.transcriptBuffer = ""
+        this.partialTranscript = ""
+
+        const lowerCmd = commandText.toLowerCase().replace(/['']/g, "'").trim()
+        if (lowerCmd === "ok" || lowerCmd === "ok." || lowerCmd === "o.k.") {
           this.state = "idle"
-          this.pendingVoiceCommandText = ""
-          this.transcriptBuffer = ""
-          this.partialTranscript = ""
+          this.handleOkAction()
+          return
+        }
+        if (/^correction\b/.test(lowerCmd)) {
+          this.state = "idle"
+          this.handleCorrectionAction()
+          return
+        }
+
+        try {
+          await this.applyVoiceEditCommand(commandText)
+          this.state = "idle"
           this.setStatus(
             "idle",
-            autoRestartAiCommand
-              ? `Commande IA appliquee${usageCost ? ` via ${providerLabel} (${usageCost})` : ""}. Reprise automatique de l'écoute...`
-              : `Commande IA appliquee${usageCost ? ` via ${providerLabel} (${usageCost})` : ""}.`
+            `Commande IA appliquee${usageCost ? ` via ${providerLabel} (${usageCost})` : ""}. Dites OK pour continuer ou Correction pour modifier.`
           )
           this.scheduleRestoreAppliedCaret()
-          if (autoRestartAiCommand) {
-            window.setTimeout(() => {
-              if (!this.enabled || !this.isEditable()) {
-                return
-              }
-              this.startListening().catch((error) => {
-                this.setStatus("error", error?.message ? String(error.message) : "Impossible de reprendre automatiquement la dictée.")
-              })
-            }, 250)
+          if (!this.correctionMode && this.transcriptionZone) {
+            this.transcriptionZone.value = commandText
           }
+          this.awaitingConfirmation = true
+          this.render()
         } catch (error) {
           const errorMessage = error?.message ? String(error.message) : "Erreur d'application de la commande IA."
-          this.pendingVoiceCommandText = ""
-          this.transcriptBuffer = ""
-          this.partialTranscript = ""
-          if (autoRestartAiCommand) {
-            this.state = "idle"
-            this.setStatus("idle", `${errorMessage} Reprise automatique de l'écoute...`)
-            window.setTimeout(() => {
-              if (!this.enabled || !this.isEditable()) {
-                return
-              }
-              this.startListening().catch((restartError) => {
-                this.setStatus("error", restartError?.message ? String(restartError.message) : "Impossible de reprendre automatiquement la dictée.")
-              })
-            }, 250)
-          } else {
-            this.state = "error"
-            this.setStatus("error", errorMessage)
+          this.state = "error"
+          this.setStatus("error", `${errorMessage} Dites OK pour continuer ou Correction pour modifier.`)
+          if (!this.correctionMode && this.transcriptionZone) {
+            this.transcriptionZone.value = commandText
           }
+          this.awaitingConfirmation = true
+          this.render()
         }
         return
       }
@@ -2301,6 +2371,9 @@
 
     findTargetInText(value, target) {
       const normalizedTarget = cleanupTargetCandidate(target)
+      if (targetRequiresStrictMatch(normalizedTarget)) {
+        return this.findTargetInTextByCandidate(value, normalizedTarget)
+      }
       const candidates = Array.from(new Set([
         normalizedTarget,
         normalizedTarget.replace(/[.,;:!?]+$/g, "").trim(),
@@ -2354,26 +2427,51 @@
       if (!normalizedTarget) {
         return []
       }
-
-      const exactMatches = []
-      let cursor = value.indexOf(normalizedTarget)
-      while (cursor !== -1) {
-        exactMatches.push({ index: cursor, length: normalizedTarget.length })
-        cursor = value.indexOf(normalizedTarget, cursor + Math.max(1, normalizedTarget.length))
-      }
-      if (exactMatches.length) {
-        return exactMatches
+      if (targetRequiresStrictMatch(normalizedTarget)) {
+        return this.findTargetOccurrencesByCandidate(value, normalizedTarget)
       }
 
-      const valueLower = value.toLowerCase()
-      const targetLower = normalizedTarget.toLowerCase()
-      const insensitiveMatches = []
-      cursor = valueLower.indexOf(targetLower)
-      while (cursor !== -1) {
-        insensitiveMatches.push({ index: cursor, length: targetLower.length })
-        cursor = valueLower.indexOf(targetLower, cursor + Math.max(1, targetLower.length))
+      return this.findTargetOccurrencesByCandidate(value, normalizedTarget, { allowFallbacks: true })
+    }
+
+    findTargetOccurrencesByCandidate(value, target, options = {}) {
+      const normalizedTarget = cleanupTargetCandidate(target)
+      const allowFallbacks = Boolean(options.allowFallbacks)
+      const candidates = allowFallbacks
+        ? Array.from(new Set([
+            normalizedTarget,
+            normalizedTarget.replace(/[.,;:!?]+$/g, "").trim(),
+            normalizedTarget.replace(/\s+/g, " ").trim(),
+            normalizedTarget.replace(/-/g, " ").trim(),
+            normalizedTarget.replace(/\s+/g, "-").trim()
+          ].filter(Boolean)))
+        : [normalizedTarget]
+
+      for (const candidate of candidates) {
+        const exactMatches = []
+        let cursor = value.indexOf(candidate)
+        while (cursor !== -1) {
+          exactMatches.push({ index: cursor, length: candidate.length })
+          cursor = value.indexOf(candidate, cursor + Math.max(1, candidate.length))
+        }
+        if (exactMatches.length) {
+          return exactMatches
+        }
+
+        const valueLower = value.toLowerCase()
+        const targetLower = candidate.toLowerCase()
+        const insensitiveMatches = []
+        cursor = valueLower.indexOf(targetLower)
+        while (cursor !== -1) {
+          insensitiveMatches.push({ index: cursor, length: targetLower.length })
+          cursor = valueLower.indexOf(targetLower, cursor + Math.max(1, targetLower.length))
+        }
+        if (insensitiveMatches.length) {
+          return insensitiveMatches
+        }
       }
-      return insensitiveMatches
+
+      return []
     }
 
     resolveOccurrenceMatch(value, target, occurrenceIndex = 0, occurrenceMode = "") {
@@ -2460,6 +2558,20 @@
       this.replaceExactRange(found.index, found.index + found.length, normalizedReplacement)
     }
 
+    smartDeleteRange(value, start, end) {
+      const afterChar = value[end] ?? ""
+      const beforeChar = start > 0 ? value[start - 1] : ""
+      const afterIsSpace = afterChar === " "
+      const beforeIsSpace = beforeChar === " "
+      if (afterIsSpace) {
+        this.replaceExactRange(start, end + 1, "")
+      } else if (beforeIsSpace) {
+        this.replaceExactRange(start - 1, end, "")
+      } else {
+        this.replaceExactRange(start, end, "")
+      }
+    }
+
     deleteExactText(target) {
       const value = String(this.textElement?.value || "")
       const normalizedTarget = String(target || "").trim()
@@ -2473,17 +2585,18 @@
       if (found.ambiguous) {
         throw new Error("Cible ambigue dans la zone courante.")
       }
-      this.replaceExactRange(found.index, found.index + found.length, "")
+      this.smartDeleteRange(value, found.index, found.index + found.length)
     }
 
     deleteNthOccurrence(target, occurrenceIndex = 0, occurrenceMode = "") {
       const value = String(this.textElement?.value || "")
-      const normalizedTarget = String(target || "").trim()
+      const rawTarget = String(target || "").trim()
+      const normalizedTarget = rawTarget.replace(/[.,;:!?]+$/, "") || rawTarget
       if (!normalizedTarget) {
         throw new Error("Texte cible a supprimer manquant.")
       }
       const found = this.resolveOccurrenceMatch(value, normalizedTarget, occurrenceIndex, occurrenceMode)
-      this.replaceExactRange(found.index, found.index + found.length, "")
+      this.smartDeleteRange(value, found.index, found.index + found.length)
     }
 
     insertAroundTarget(target, text, position = "before") {
@@ -2597,6 +2710,63 @@
       this.lastSelectionEnd = caret
     }
 
+    handleOkAction() {
+      if (this.correctionMode) {
+        const correctedCommand = String(this.transcriptionZone?.value || "").trim()
+        this.textElement = this.mailTextElement || this.textElement
+        this.mailTextElement = null
+        this.correctionMode = false
+        this.awaitingConfirmation = false
+        this.render()
+        if (!correctedCommand) {
+          this.setStatus("idle", "Zone de transcription vide. Dites Correction pour modifier.")
+          this.awaitingConfirmation = true
+          this.render()
+          return
+        }
+        this.state = "transcribing"
+        this.setStatus("transcribing", "Application de la correction sur le texte...")
+        this.rebaseCurrentActionFromVisibleText()
+        this.applyVoiceEditCommand(correctedCommand)
+          .then(() => {
+            if (this.transcriptionZone) this.transcriptionZone.value = correctedCommand
+            this.awaitingConfirmation = true
+            this.state = "idle"
+            this.setStatus("idle", "Correction appliquee. Dites OK pour continuer ou Correction pour modifier.")
+            this.render()
+          })
+          .catch((error) => {
+            const msg = error?.message ? String(error.message) : "Erreur d'application de la correction."
+            this.awaitingConfirmation = true
+            this.state = "error"
+            this.setStatus("error", `${msg} Dites OK pour continuer ou Correction pour modifier.`)
+            this.render()
+          })
+      } else {
+        if (this.transcriptionZone) this.transcriptionZone.value = ""
+        this.awaitingConfirmation = false
+        this.render()
+        this.startListening().catch((error) => {
+          this.setStatus("error", error?.message ? String(error.message) : "Impossible de reprendre l'écoute.")
+        })
+      }
+    }
+
+    handleCorrectionAction() {
+      if (!this.transcriptionZone) return
+      if (!this.correctionMode) {
+        this.mailTextElement = this.textElement
+      }
+      this.textElement = this.transcriptionZone
+      this.correctionMode = true
+      this.awaitingConfirmation = false
+      this.rebaseCurrentActionFromVisibleText()
+      this.render()
+      this.startListening().catch((error) => {
+        this.setStatus("error", error?.message ? String(error.message) : "Impossible de démarrer la correction vocale.")
+      })
+    }
+
     async applyVoiceEditCommand(commandText) {
       const normalizedCommand = String(commandText || "").trim()
       if (!normalizedCommand || !this.textElement) {
@@ -2614,6 +2784,11 @@
       }, {
         model: this.getActiveModel(),
         language: this.getActiveLanguage()
+      })
+
+      console.info("[voice-edit-command]", {
+        commandText: normalizedCommand,
+        resolvedCommand: command
       })
 
       const action = String(command.action || "none").trim()
@@ -2780,11 +2955,27 @@
       this.controlsElement.classList.toggle("audio-input-error-state", this.state === "error")
       this.controlsElement.classList.toggle("audio-input-command-ready", this.state === "recording" && this.voiceCommandReady)
 
-      if (this.startButton) this.startButton.disabled = disabled || this.state === "recording" || this.state === "paused" || this.state === "transcribing"
+      const busy = this.state === "recording" || this.state === "paused" || this.state === "transcribing"
+      if (this.startButton) this.startButton.disabled = disabled || busy || this.awaitingConfirmation
       if (this.pauseButton) this.pauseButton.disabled = disabled || this.state !== "recording"
       if (this.resumeButton) this.resumeButton.disabled = disabled || this.state !== "paused"
       if (this.stopButton) this.stopButton.disabled = disabled || (this.state !== "recording" && this.state !== "paused")
-      if (this.modeSelect) this.modeSelect.disabled = disabled || this.state === "transcribing"
+      if (this.modeSelect) this.modeSelect.disabled = disabled || this.state === "transcribing" || this.awaitingConfirmation
+
+      const showConfirm = this.awaitingConfirmation
+      if (this.transcriptionZone) {
+        this.transcriptionZone.style.display = showConfirm ? "" : "none"
+        this.transcriptionZone.readOnly = busy
+      }
+      if (this.correctionButton) {
+        this.correctionButton.style.display = showConfirm ? "" : "none"
+        this.correctionButton.disabled = busy
+      }
+      if (this.okButton) {
+        this.okButton.style.display = showConfirm ? "" : "none"
+        this.okButton.disabled = busy
+      }
+      this.controlsElement.classList.toggle("audio-input-awaiting-confirmation", showConfirm)
 
       if (!this.statusElement) return
       if (this.state === "idle") {
