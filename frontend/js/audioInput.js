@@ -338,9 +338,47 @@
     return /[.,;:!?()[\]{}"'«»“”\-_/\\@#&*+=<>%]/.test(String(value || ""))
   }
 
+  function escapeRegExp(value) {
+    return String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  }
+
+  function findWholeWordMatches(value, target) {
+    const normalizedTarget = cleanupTargetCandidate(target)
+    if (!normalizedTarget || /[.,;:!?()[\]{}"'«»“”_/\\@#&*+=<>%]/.test(normalizedTarget)) {
+      return []
+    }
+    const pattern = normalizedTarget
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((token) => escapeRegExp(token))
+      .join("\\s+")
+    if (!pattern) {
+      return []
+    }
+    try {
+      const rx = new RegExp(`(^|[^\\p{L}\\p{N}])(${pattern})(?=$|[^\\p{L}\\p{N}])`, "giu")
+      const matches = []
+      let match = rx.exec(value)
+      while (match) {
+        const prefix = match[1] || ""
+        const text = match[2] || ""
+        matches.push({
+          index: match.index + prefix.length,
+          length: text.length
+        })
+        match = rx.exec(value)
+      }
+      return matches
+    } catch (_) {
+      return []
+    }
+  }
+
   function applyTranscriptionCommandHeuristics(value) {
     let normalized = String(value || "")
 
+    normalized = normalized.replace(/^\s*mais\s+(?=.+?\s+[aà]\s+.+)/i, "mets ")
+    normalized = normalized.replace(/^\s*mes\s+(?=.+?\s+[aà]\s+.+)/i, "mets ")
     normalized = normalized.replace(/^\s*mais\s+(?=(?:une\s+majuscule|un\s+retour|deux\s+points|un\s+point|.+?\s+en\s+majuscules|.+?\s+en\s+minuscules))/i, "mets ")
     normalized = normalized.replace(/^\s*mes\s+(?=(?:une\s+majuscule|un\s+retour|deux\s+points|un\s+point|.+?\s+en\s+majuscules|.+?\s+en\s+minuscules))/i, "mets ")
     normalized = normalized.replace(/^\s*fait\s+un\s+nouveau\s+paragraphe/i, "fais un nouveau paragraphe")
@@ -348,6 +386,11 @@
     normalized = normalized.replace(/\bmai?s\s+une\s+virgule\b/i, "mets une virgule")
     normalized = normalized.replace(/\bmai?s\s+un\s+point\b/i, "mets un point")
     normalized = normalized.replace(/\bmai?s\s+un\s+retour\s+a\s+la\s+ligne\b/i, "mets un retour a la ligne")
+    normalized = normalized.replace(/^\s*remplace\s+1\s+par\s+/i, "Remplace un par ")
+    normalized = normalized.replace(
+      /^\s*(?:met|mets|mais|mes)\s+est[- ]?ce\s+(en\s+majuscules?|en\s+minuscules?)\s*$/i,
+      "mets s $1"
+    )
 
     return normalized
   }
@@ -372,6 +415,57 @@
       .trim()
       .replace(/((?:\bvirgule\b|\bpoint\b|\bdeux points\b|\bpoint d'interrogation\b|\bpoint d exclamation\b|\bpoint-virgule\b|\bpoint virgule\b|\btiret\b))([.?!]+)$/i, "$1")
       .trim()
+  }
+
+  function isVoiceOkCommand(value) {
+    const normalized = String(value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[’']/g, "'")
+      .replace(/\s+/g, " ")
+    return [
+      "ok",
+      "ok.",
+      "o.k.",
+      "okay",
+      "okay.",
+      "okey",
+      "okey.",
+      "oké",
+      "oké.",
+      "d'accord",
+      "d'accord.",
+      "daccord",
+      "daccord."
+    ].includes(normalized)
+  }
+
+  function isVoiceCorrectionCommand(value) {
+    const normalized = String(value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[’']/g, "'")
+      .replace(/\s+/g, " ")
+    return /^(correction|corrige|corriger)\b/.test(normalized)
+  }
+
+  function generateVoiceCommandCandidates(command = "") {
+    const original = String(command || "").trim()
+    if (!original) {
+      return []
+    }
+
+    const variants = new Set([original, applyTranscriptionCommandHeuristics(original)])
+    const base = Array.from(variants)
+
+    for (const candidate of base) {
+      variants.add(candidate.replace(/^\s*remplace\s+1\s+par\s+/i, "Remplace un par "))
+      variants.add(candidate.replace(/^\s*supprime\s+1\s+(dans|de|a|à)\s+/i, "Supprime un $1 "))
+      variants.add(candidate.replace(/^\s*ajoute\s+1\s+(dans|de|a|à)\s+/i, "Ajoute un $1 "))
+      variants.add(candidate.replace(/^\s*(?:met|mets|mais|mes)\s+est[- ]?ce\s+(en\s+majuscules?|en\s+minuscules?)\s*$/i, "mets s $1"))
+    }
+
+    return Array.from(variants).map((value) => String(value || "").trim()).filter(Boolean).slice(0, 5)
   }
 
   function buildLocalVoiceEditCommand(payload = {}) {
@@ -453,9 +547,9 @@
       }
     }
 
-    const appendEndMatch = commandForMatching.match(/^(?:ajoute|ajouter|mets|mettre|met)\s+(?:seulement\s+)?(?:(?:le|la)\s+mot\s+|la\s+phrase\s+)?(.+?)\s+a\s+la\s+fin(?:\s+du\s+texte|\s+de\s+page)?$/i)
-      || commandForMatching.match(/^a\s+la\s+fin\s+(?:ajoute|ajouter|mets|mettre|met)\s+(?:la\s+phrase\s+)?(.+)$/i)
-      || commandForMatching.match(/^positionne-toi\s+en\s+fin\s+de\s+page\s+et\s+(?:ajoute|ajouter|mets|mettre|met)\s+(?:seulement\s+)?(?:(?:le|la)\s+mot\s+|la\s+phrase\s+)?(.+)$/i)
+    const appendEndMatch = commandForMatching.match(/^(?:ajoute|ajoutez|ajouter|mets|mettre|met)\s+(?:seulement\s+)?(?:(?:le|la)\s+mot\s+|la\s+phrase\s+)?(.+?)\s+a\s+la\s+fin(?:\s+du\s+texte|\s+de\s+page)?$/i)
+      || commandForMatching.match(/^a\s+la\s+fin\s+(?:ajoute|ajoutez|ajouter|mets|mettre|met)\s+(?:la\s+phrase\s+)?(.+)$/i)
+      || commandForMatching.match(/^positionne-toi\s+en\s+fin\s+de\s+page\s+et\s+(?:ajoute|ajoutez|ajouter|mets|mettre|met)\s+(?:seulement\s+)?(?:(?:le|la)\s+mot\s+|la\s+phrase\s+)?(.+)$/i)
     if (appendEndMatch) {
       const result = {
         action: "append_end",
@@ -467,6 +561,21 @@
         reason: "Commande locale reconnue : ajout en fin."
       }
       traceLocalCommand("append_end", result)
+      return result
+    }
+
+    const replaceAllMatch = commandForMatching.match(/^(?:remplace|remplacer)\s+toute\s+la\s+phrase\s+par\s+(.+)$/i)
+    if (replaceAllMatch) {
+      const result = {
+        action: "replace_all_text",
+        target: "",
+        text: decodeSpokenPunctuation(replaceAllMatch[1]),
+        cursorPosition: "",
+        shouldApply,
+        confidence,
+        reason: "Commande locale reconnue : remplacement complet de la phrase."
+      }
+      traceLocalCommand("replace_all_text", result)
       return result
     }
 
@@ -485,6 +594,36 @@
       return result
     }
 
+    const deleteFromTargetMatch = commandForMatching.match(/^(?:supprime|supprimer)\s+(.+?)\s+(?:[aà]|de|dans)\s+(.+)$/i)
+    if (deleteFromTargetMatch) {
+      const result = {
+        action: "delete_from_target",
+        target: normalizePunctuationTarget(deleteFromTargetMatch[2]).replace(/[.?!]+$/g, ""),
+        text: decodeSpokenPunctuation(deleteFromTargetMatch[1]).replace(/^(?:le|la|les)\s+/i, ""),
+        cursorPosition: "",
+        shouldApply,
+        confidence,
+        reason: "Commande locale reconnue : suppression dans une cible."
+      }
+      traceLocalCommand("delete_from_target", result)
+      return result
+    }
+
+    const clearTextMatch = commandForMatching.match(/^(?:supprime|supprimer)\s+toute\s+la\s+phrase$/i)
+    if (clearTextMatch) {
+      const result = {
+        action: "clear_text",
+        target: "",
+        text: "",
+        cursorPosition: "",
+        shouldApply,
+        confidence,
+        reason: "Commande locale reconnue : suppression complete de la phrase."
+      }
+      traceLocalCommand("clear_text", result)
+      return result
+    }
+
     const deleteMatch = commandForMatching.match(/^(?:supprime|supprimer)\s+(?:le\s+mot\s+|la\s+phrase\s+)?(.+)$/i)
     if (deleteMatch && !/\b(paragraphe|premier|dernier|deuxieme|deuxième)\b/i.test(deleteMatch[1])) {
       const result = {
@@ -500,7 +639,7 @@
       return result
     }
 
-    const insertBeforeMatch = commandForMatching.match(/^(?:dans\s+.+?\s+)?(?:ajoute|ajouter|insere|inserer|mets|mettre|met)\s+(.+?)\s+(?:devant|avant)\s+(.+)$/i)
+    const insertBeforeMatch = commandForMatching.match(/^(?:dans\s+.+?\s+)?(?:ajoute|ajoutez|ajouter|insere|inserez|inserer|mets|mettre|met)\s+(.+?)\s+(?:devant|avant)\s+(.+)$/i)
     if (insertBeforeMatch) {
       const result = {
         action: "insert_before",
@@ -515,7 +654,7 @@
       return result
     }
 
-    const insertAfterMatch = commandForMatching.match(/^(?:dans\s+.+?\s+)?(?:ajoute|ajouter|insere|inserer|mets|mettre|met)\s+(.+?)\s+apr[eè]s\s+(.+)$/i)
+    const insertAfterMatch = commandForMatching.match(/^(?:dans\s+.+?\s+)?(?:ajoute|ajoutez|ajouter|insere|inserez|inserer|mets|mettre|met)\s+(.+?)\s+apr[eè]s\s+(.+)$/i)
     if (insertAfterMatch) {
       const result = {
         action: "insert_after",
@@ -527,6 +666,21 @@
         reason: "Commande locale reconnue : insertion après cible."
       }
       traceLocalCommand("insert_after", result)
+      return result
+    }
+
+    const appendToTargetMatch = commandForMatching.match(/^(?:ajoute|ajoutez|ajouter|mets|mettre|met)\s+(?:seulement\s+)?(.+?)\s+(?:[aà]|dans|de)\s+(.+)$/i)
+    if (appendToTargetMatch) {
+      const result = {
+        action: "append_to_target",
+        target: normalizePunctuationTarget(appendToTargetMatch[2]).replace(/[.?!]+$/g, ""),
+        text: decodeSpokenPunctuation(appendToTargetMatch[1]).replace(/^(?:le|la|les)\s+/i, ""),
+        cursorPosition: "",
+        shouldApply,
+        confidence,
+        reason: "Commande locale reconnue : ajout a une cible."
+      }
+      traceLocalCommand("append_to_target", result)
       return result
     }
 
@@ -1845,6 +1999,7 @@
 
     async _stopListeningInternal(options = {}) {
       const insert = options.insert !== false
+      const silent = options.silent === true
       const autoRestartAiCommand = options.autoRestartAiCommand === true
       const recordedMs = this.recordingStartedAt ? Date.now() - this.recordingStartedAt : 0
       const selectedProvider = this.getSelectedProvider()
@@ -1893,7 +2048,9 @@
         this.pendingVoiceCommandText = ""
         this.voiceCommandReady = false
         this.voiceCommandInputLocked = false
-        this.setStatus("idle", "Dictée arrêtée.")
+        if (!silent) {
+          this.setStatus("idle", "Dictée arrêtée.")
+        }
         return
       }
 
@@ -2009,19 +2166,69 @@
       const usageCost = useLiveProvider ? formatUsageCost(liveUsage) : ""
       const providerLabel = liveProviderMeta?.providerLabel || this.getProviderLabel()
 
+      if (this.correctionMode) {
+        const commandText = String(this.transcriptBuffer || "").trim()
+        this.pendingVoiceCommandText = ""
+        this.transcriptBuffer = ""
+        this.partialTranscript = ""
+        if (isVoiceOkCommand(commandText)) {
+          this.state = "idle"
+          this.handleOkAction()
+          return
+        }
+        if (isVoiceCorrectionCommand(commandText)) {
+          this.state = "idle"
+          this.setStatus("idle", "Mode correction deja actif. Modifiez la phrase transitoire puis dites OK.")
+          this.render()
+          return
+        }
+
+        try {
+          this.textElement = this.transcriptionZone || this.textElement
+          await this.applyVoiceEditCommand(commandText)
+          this.state = "idle"
+          this.setStatus(
+            "idle",
+            `Correction de la phrase transitoire appliquee${usageCost ? ` via ${providerLabel} (${usageCost})` : ""}. Continuez si besoin ou dites OK.`
+          )
+          this.render()
+          window.setTimeout(() => {
+            if (!this.enabled || !this.correctionMode || !this.isEditable()) {
+              return
+            }
+            this.startListening().catch((error) => {
+              this.setStatus("error", error?.message ? String(error.message) : "Impossible de reprendre la correction vocale.")
+            })
+          }, 250)
+        } catch (error) {
+          const errorMessage = error?.message ? String(error.message) : "Erreur d'application de la correction."
+          this.state = "error"
+          this.setStatus("error", `${errorMessage} Continuez la correction ou dites OK.`)
+          this.render()
+          window.setTimeout(() => {
+            if (!this.enabled || !this.correctionMode || !this.isEditable()) {
+              return
+            }
+            this.startListening().catch((restartError) => {
+              this.setStatus("error", restartError?.message ? String(restartError.message) : "Impossible de reprendre la correction vocale.")
+            })
+          }, 250)
+        }
+        return
+      }
+
       if (currentMode === "ai-command") {
         const commandText = this.transcriptBuffer
         this.pendingVoiceCommandText = ""
         this.transcriptBuffer = ""
         this.partialTranscript = ""
 
-        const lowerCmd = commandText.toLowerCase().replace(/['']/g, "'").trim()
-        if (lowerCmd === "ok" || lowerCmd === "ok." || lowerCmd === "o.k.") {
+        if (isVoiceOkCommand(commandText)) {
           this.state = "idle"
           this.handleOkAction()
           return
         }
-        if (/^correction\b/.test(lowerCmd)) {
+        if (isVoiceCorrectionCommand(commandText)) {
           this.state = "idle"
           this.handleCorrectionAction()
           return
@@ -2040,6 +2247,7 @@
           }
           this.awaitingConfirmation = true
           this.render()
+          this.scheduleConfirmationVoiceListening()
         } catch (error) {
           const errorMessage = error?.message ? String(error.message) : "Erreur d'application de la commande IA."
           this.state = "error"
@@ -2049,6 +2257,7 @@
           }
           this.awaitingConfirmation = true
           this.render()
+          this.scheduleConfirmationVoiceListening()
         }
         return
       }
@@ -2394,10 +2603,13 @@
     }
 
     findTargetInTextByCandidate(value, target) {
-      const first = value.indexOf(target)
-      if (first !== -1) {
-        const second = value.indexOf(target, first + target.length)
-        return { index: first, length: target.length, ambiguous: second !== -1 }
+      const wholeWordMatches = findWholeWordMatches(value, target)
+      if (wholeWordMatches.length) {
+        return {
+          index: wholeWordMatches[0].index,
+          length: wholeWordMatches[0].length,
+          ambiguous: wholeWordMatches.length > 1
+        }
       }
       const valueLower = value.toLowerCase()
       const targetLower = target.toLowerCase()
@@ -2449,20 +2661,14 @@
         : [normalizedTarget]
 
       for (const candidate of candidates) {
-        const exactMatches = []
-        let cursor = value.indexOf(candidate)
-        while (cursor !== -1) {
-          exactMatches.push({ index: cursor, length: candidate.length })
-          cursor = value.indexOf(candidate, cursor + Math.max(1, candidate.length))
+        const wholeWordMatches = findWholeWordMatches(value, candidate)
+        if (wholeWordMatches.length) {
+          return wholeWordMatches
         }
-        if (exactMatches.length) {
-          return exactMatches
-        }
-
         const valueLower = value.toLowerCase()
         const targetLower = candidate.toLowerCase()
         const insensitiveMatches = []
-        cursor = valueLower.indexOf(targetLower)
+        let cursor = valueLower.indexOf(targetLower)
         while (cursor !== -1) {
           insensitiveMatches.push({ index: cursor, length: targetLower.length })
           cursor = valueLower.indexOf(targetLower, cursor + Math.max(1, targetLower.length))
@@ -2529,6 +2735,67 @@
       this.lastSelectionStart = caret
       this.lastSelectionEnd = caret
       this.textElement.dispatchEvent(new Event("input", { bubbles: true }))
+    }
+
+    replaceAllText(text) {
+      if (!this.textElement) {
+        return
+      }
+      const nextValue = String(text || "")
+      const caret = nextValue.length
+      this.textElement.value = nextValue
+      this.textElement.focus()
+      this.textElement.setSelectionRange(caret, caret)
+      this.rememberAppliedCaret(caret, caret)
+      this.lastSelectionStart = caret
+      this.lastSelectionEnd = caret
+      this.textElement.dispatchEvent(new Event("input", { bubbles: true }))
+    }
+
+    appendToTarget(target, text) {
+      const value = String(this.textElement?.value || "")
+      const normalizedTarget = String(target || "")
+      const normalizedText = String(text || "").trim()
+      if (!normalizedTarget || !normalizedText) {
+        throw new Error("Cible ou texte a ajouter manquant.")
+      }
+      const found = this.findTargetInText(value, normalizedTarget)
+      if (found.index === -1) {
+        throw new Error("Texte cible introuvable dans la zone courante.")
+      }
+      if (found.ambiguous) {
+        throw new Error("Cible ambigue dans la zone courante.")
+      }
+      const current = value.slice(found.index, found.index + found.length)
+      const punctuationMatch = current.match(/[.,;:!?]+$/)
+      const insertionIndex = punctuationMatch
+        ? found.index + found.length - punctuationMatch[0].length
+        : found.index + found.length
+      this.replaceExactRange(insertionIndex, insertionIndex, normalizedText)
+    }
+
+    deleteFromTarget(target, text) {
+      const value = String(this.textElement?.value || "")
+      const normalizedTarget = String(target || "")
+      const normalizedText = String(text || "").trim()
+      if (!normalizedTarget || !normalizedText) {
+        throw new Error("Cible ou texte a supprimer manquant.")
+      }
+      const found = this.findTargetInText(value, normalizedTarget)
+      if (found.index === -1) {
+        throw new Error("Texte cible introuvable dans la zone courante.")
+      }
+      if (found.ambiguous) {
+        throw new Error("Cible ambigue dans la zone courante.")
+      }
+      const current = value.slice(found.index, found.index + found.length)
+      const currentLower = current.toLowerCase()
+      const targetLower = normalizedText.toLowerCase()
+      const deleteIndex = currentLower.lastIndexOf(targetLower)
+      if (deleteIndex === -1) {
+        throw new Error("Texte a supprimer introuvable dans la cible.")
+      }
+      this.replaceExactRange(found.index + deleteIndex, found.index + deleteIndex + normalizedText.length, "")
     }
 
     replaceExactText(target, replacement) {
@@ -2711,12 +2978,23 @@
       this.lastSelectionEnd = caret
     }
 
+    scheduleConfirmationVoiceListening() {
+      window.setTimeout(() => {
+        if (!this.enabled || !this.awaitingConfirmation || this.correctionMode || !this.isEditable()) {
+          return
+        }
+        this.startListening().catch((error) => {
+          this.setStatus("error", error?.message ? String(error.message) : "Impossible d'activer l'écoute de validation vocale.")
+        })
+      }, 250)
+    }
+
     async handleOkAction() {
-      if ((this.state === "recording" || this.state === "paused") && !this.stoppingListening) {
-        try { await this.stopListening({ insert: false }) } catch (_) {}
-      }
       if (this.correctionMode) {
         const correctedCommand = String(this.transcriptionZone?.value || "").trim()
+        if ((this.state === "recording" || this.state === "paused") && !this.stoppingListening) {
+          try { await this.stopListening({ insert: false, silent: true }) } catch (_) {}
+        }
         this.textElement = this.mailTextElement || this.textElement
         this.mailTextElement = null
         this.correctionMode = false
@@ -2738,6 +3016,7 @@
             this.state = "idle"
             this.setStatus("idle", "Correction appliquee. Dites OK pour continuer ou Correction pour modifier.")
             this.render()
+            this.scheduleConfirmationVoiceListening()
           })
           .catch((error) => {
             const msg = error?.message ? String(error.message) : "Erreur d'application de la correction."
@@ -2745,8 +3024,12 @@
             this.state = "error"
             this.setStatus("error", `${msg} Dites OK pour continuer ou Correction pour modifier.`)
             this.render()
+            this.scheduleConfirmationVoiceListening()
           })
       } else {
+        if ((this.state === "recording" || this.state === "paused") && !this.stoppingListening) {
+          try { await this.stopListening({ insert: false }) } catch (_) {}
+        }
         if (this.transcriptionZone) this.transcriptionZone.value = ""
         this.awaitingConfirmation = false
         this.render()
@@ -2766,6 +3049,10 @@
       this.awaitingConfirmation = false
       this.rebaseCurrentActionFromVisibleText()
       this.render()
+      this.setStatus(
+        "idle",
+        "Mode correction actif. Corrigez la commande au clavier ou a la voix, par exemple : remplace X par Y, mets X en majuscules, mets X en minuscules, mets une majuscule a X. Puis dites OK."
+      )
       this.startListening().catch((error) => {
         this.setStatus("error", error?.message ? String(error.message) : "Impossible de démarrer la correction vocale.")
       })
@@ -2779,12 +3066,15 @@
       const selection = this.getCurrentSelectionSnapshot()
       const command = await requestVoiceEditCommand({
         command: normalizedCommand,
+        candidateCommands: generateVoiceCommandCandidates(normalizedCommand),
         currentText: this.textElement.value || "",
         selectedText: selection.selectedText,
         selectionStart: selection.start,
         selectionEnd: selection.end,
         targetId: this.textElement.id || "",
-        language: this.getActiveLanguage()
+        language: this.getActiveLanguage(),
+        mode: this.correctionMode ? "correction" : "mail_edit",
+        targetArea: this.correctionMode ? "transient_command" : "mail_text"
       }, {
         model: this.getActiveModel(),
         language: this.getActiveLanguage()
@@ -2810,18 +3100,26 @@
         this.lastSelectionStart = selection.start
         this.lastSelectionEnd = selection.end
         this.replaceSelection(text)
+      } else if (action === "replace_all_text") {
+        this.replaceAllText(text)
       } else if (action === "replace_text") {
         this.replaceExactText(target, text)
       } else if (action === "replace_nth_occurrence") {
         this.replaceNthOccurrence(target, text, occurrenceIndex, occurrenceMode)
       } else if (action === "delete_text") {
         this.deleteExactText(target)
+      } else if (action === "delete_from_target") {
+        this.deleteFromTarget(target, text)
+      } else if (action === "clear_text") {
+        this.replaceAllText("")
       } else if (action === "delete_nth_occurrence") {
         this.deleteNthOccurrence(target, occurrenceIndex, occurrenceMode)
       } else if (action === "insert_before") {
         this.insertAroundTarget(target, text, "before")
       } else if (action === "insert_after") {
         this.insertAroundTarget(target, text, "after")
+      } else if (action === "append_to_target") {
+        this.appendToTarget(target, text)
       } else if (action === "uppercase_target") {
         this.transformExactText(target, (current) => current.toUpperCase(), "Transformation en majuscules impossible.")
       } else if (action === "lowercase_target") {
@@ -2961,7 +3259,7 @@
 
       const busy = this.state === "recording" || this.state === "paused" || this.state === "transcribing"
       const inCorrectionFlow = this.awaitingConfirmation || this.correctionMode
-      if (this.startButton) this.startButton.disabled = disabled || busy || this.awaitingConfirmation
+      if (this.startButton) this.startButton.disabled = disabled || busy
       if (this.pauseButton) this.pauseButton.disabled = disabled || this.state !== "recording"
       if (this.resumeButton) this.resumeButton.disabled = disabled || this.state !== "paused"
       if (this.stopButton) this.stopButton.disabled = disabled || (this.state !== "recording" && this.state !== "paused")

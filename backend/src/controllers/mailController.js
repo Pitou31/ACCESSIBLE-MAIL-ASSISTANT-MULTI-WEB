@@ -130,10 +130,15 @@ function buildVoiceEditCommandPrompt(payload = {}) {
   const currentText = String(payload.currentText || "")
   const selectedText = String(payload.selectedText || "")
   const command = String(payload.command || "").trim()
+  const candidateCommands = Array.isArray(payload.candidateCommands)
+    ? payload.candidateCommands.map((value) => String(value || "").trim()).filter(Boolean).slice(0, 5)
+    : []
   const language = String(payload.language || "fr").trim().toLowerCase()
   const languageLabel = getLanguageLabel(language)
   const selectionStart = Number.isInteger(payload.selectionStart) ? payload.selectionStart : 0
   const selectionEnd = Number.isInteger(payload.selectionEnd) ? payload.selectionEnd : selectionStart
+  const mode = String(payload.mode || "mail_edit").trim() || "mail_edit"
+  const targetArea = String(payload.targetArea || "mail_text").trim() || "mail_text"
 
   return `
 Tu es un assistant d'edition locale de texte en ${languageLabel}.
@@ -141,11 +146,13 @@ Tu es un assistant d'edition locale de texte en ${languageLabel}.
 IMPORTANT : reponds UNIQUEMENT avec un objet JSON valide. Aucun texte avant, aucun texte apres, aucune explication, aucun commentaire. Seulement le JSON brut.
 
 Tu dois interpreter une commande vocale d'edition et produire le JSON d'action correspondant.
+Tu recois une commande brute et quelques variantes plausibles. Tu dois raisonner en interne et choisir UNE SEULE interpretation finale coherente avec le texte courant.
 
 Actions autorisees :
 - "replace_selection"
 - "replace_text"
 - "replace_nth_occurrence"
+- "replace_all_text"
 - "insert_before"
 - "insert_after"
 - "insert_at_start"
@@ -155,9 +162,12 @@ Actions autorisees :
 - "insert_line_break_after_target"
 - "insert_paragraph_before_target"
 - "append_end"
+- "append_to_target"
 - "delete_selection"
 - "delete_text"
+- "delete_from_target"
 - "delete_nth_occurrence"
+- "clear_text"
 - "uppercase_target"
 - "lowercase_target"
 - "capitalize_target"
@@ -205,12 +215,21 @@ Regle Edition vocale :
 - Si l'utilisateur dit "place le curseur a la fin", l'action est "move_caret" et le champ "cursorPosition" vaut "end".
 
 Regles :
+- Essaie d'abord de comprendre la commande brute.
+- Si elle semble incoherente ou inapplicable, examine les variantes proposees.
+- Choisis l'interpretation la plus coherente avec le texte courant.
+- En mode "correction", le texte courant est la phrase transitoire a editer, pas le mail.
+- En mode "mail_edit", le texte courant est le texte du mail a modifier.
+- Si plusieurs interpretations restent plausibles, reponds avec action "none".
+- Si aucune interpretation ne correspond clairement au texte courant, reponds avec action "none".
 - Tu ne modifies jamais tout le texte.
 - Tu agis seulement sur la selection ou sur une cible textuelle explicite.
 - Si la commande est ambigue, reponds avec action "none".
 - Si la commande demande de remplacer la selection courante, utilise "replace_selection".
+- Si la commande demande de remplacer toute la phrase courante, utilise "replace_all_text".
 - Si la commande demande simplement d'ecrire ou d'inserer du texte sans autre precision de cible, utilise "replace_selection". Si la selection est vide, cela signifie une insertion au curseur courant.
 - Si la commande demande d'ajouter a la fin, utilise "append_end".
+- Si la commande demande d'ajouter un fragment dans un mot ou une cible explicite comme "ajoute s a document", utilise "append_to_target".
 - Si la commande demande d'inserer avant ou apres un mot cible, utilise "insert_before" ou "insert_after".
 - Si la commande demande d'inserer au debut du texte, utilise "insert_at_start".
 - Si la commande demande de deplacer ou placer le curseur, utilise "move_caret".
@@ -221,6 +240,8 @@ Regles :
 - Si la commande demande de remplacer un mot cible explicite, utilise "replace_text".
 - Si la commande demande de remplacer une occurrence ordinale explicite comme premier, deuxieme ou dernier, utilise "replace_nth_occurrence".
 - Si la commande demande de supprimer un mot, une expression ou une phrase cible explicite, utilise "delete_text".
+- Si la commande demande de supprimer un fragment dans une cible explicite comme "supprime s dans documents", utilise "delete_from_target".
+- Si la commande demande de supprimer toute la phrase courante, utilise "clear_text".
 - Si la commande demande de supprimer une occurrence ordinale explicite comme premier, deuxieme ou dernier, utilise "delete_nth_occurrence".
 - Si la commande demande des majuscules, utilise "uppercase_target".
 - Si la commande demande des minuscules, utilise "lowercase_target".
@@ -232,7 +253,7 @@ Regles :
 
 Structure attendue :
 {
-  "action": "replace_selection|replace_text|replace_nth_occurrence|insert_before|insert_after|insert_at_start|move_caret|insert_line_break|insert_line_break_before_target|insert_line_break_after_target|insert_paragraph_before_target|append_end|delete_selection|delete_text|delete_nth_occurrence|uppercase_target|lowercase_target|capitalize_target|none",
+  "action": "replace_selection|replace_text|replace_nth_occurrence|replace_all_text|insert_before|insert_after|insert_at_start|move_caret|insert_line_break|insert_line_break_before_target|insert_line_break_after_target|insert_paragraph_before_target|append_end|append_to_target|delete_selection|delete_text|delete_from_target|delete_nth_occurrence|clear_text|uppercase_target|lowercase_target|capitalize_target|none",
   "target": "texte cible ou vide",
   "text": "texte a inserer ou vide",
   "cursorPosition": "before|after|start|end|vide",
@@ -244,11 +265,14 @@ Structure attendue :
 }
 
 Contexte :
+- Mode : ${JSON.stringify(mode)}
+- Zone cible : ${JSON.stringify(targetArea)}
 - Texte courant : ${JSON.stringify(currentText)}
 - Selection courante : ${JSON.stringify(selectedText)}
 - Debut selection : ${selectionStart}
 - Fin selection : ${selectionEnd}
-- Commande vocale : ${JSON.stringify(command)}
+- Commande vocale brute : ${JSON.stringify(command)}
+- Variantes candidates : ${JSON.stringify(candidateCommands.length ? candidateCommands : [command])}
   `.trim()
 }
 
@@ -266,7 +290,7 @@ function normalizeVoiceCommandHomophones(command) {
 }
 
 function normalizeVoiceEditAction(raw = {}) {
-  const allowedActions = new Set(["replace_selection", "replace_text", "replace_nth_occurrence", "insert_before", "insert_after", "insert_at_start", "move_caret", "insert_line_break", "insert_line_break_before_target", "insert_line_break_after_target", "insert_paragraph_before_target", "append_end", "delete_selection", "delete_text", "delete_nth_occurrence", "uppercase_target", "lowercase_target", "capitalize_target", "none"])
+  const allowedActions = new Set(["replace_selection", "replace_text", "replace_nth_occurrence", "replace_all_text", "insert_before", "insert_after", "insert_at_start", "move_caret", "insert_line_break", "insert_line_break_before_target", "insert_line_break_after_target", "insert_paragraph_before_target", "append_end", "append_to_target", "delete_selection", "delete_text", "delete_from_target", "delete_nth_occurrence", "clear_text", "uppercase_target", "lowercase_target", "capitalize_target", "none"])
   const action = allowedActions.has(String(raw.action || "").trim()) ? String(raw.action || "").trim() : "none"
   const allowedCursorPositions = new Set(["before", "after", "start", "end"])
   const cursorPosition = allowedCursorPositions.has(String(raw.cursorPosition || "").trim()) ? String(raw.cursorPosition || "").trim() : ""
@@ -283,11 +307,33 @@ function normalizeVoiceEditAction(raw = {}) {
   }
 }
 
+function generateVoiceCommandCandidates(command = "") {
+  const original = String(command || "").trim()
+  if (!original) {
+    return []
+  }
+
+  const variants = new Set([original, normalizeVoiceCommandHomophones(original)])
+  const base = Array.from(variants)
+
+  for (const candidate of base) {
+    variants.add(candidate.replace(/^\s*remplace\s+1\s+par\s+/i, "Remplace un par "))
+    variants.add(candidate.replace(/^\s*supprime\s+1\s+(dans|de|a|à)\s+/i, "Supprime un $1 "))
+    variants.add(candidate.replace(/^\s*ajoute\s+1\s+(dans|de|a|à)\s+/i, "Ajoute un $1 "))
+    variants.add(candidate.replace(/^\s*(?:met|mets|mais|mes)\s+est[- ]?ce\s+(en\s+majuscules?|en\s+minuscules?)\s*$/i, "mets s $1"))
+  }
+
+  return Array.from(variants).map((value) => String(value || "").trim()).filter(Boolean).slice(0, 5)
+}
+
 async function interpretVoiceEditCommand(payload = {}, options = {}) {
   const requestedModel = options.model || "deepseek-chat"
   const normalizedPayload = {
     ...payload,
-    command: normalizeVoiceCommandHomophones(String(payload.command || ""))
+    command: normalizeVoiceCommandHomophones(String(payload.command || "")),
+    candidateCommands: Array.isArray(payload.candidateCommands) && payload.candidateCommands.length
+      ? payload.candidateCommands
+      : generateVoiceCommandCandidates(String(payload.command || ""))
   }
   const prompt = buildVoiceEditCommandPrompt(normalizedPayload)
   const aiRaw = await runAIWithTimeout(requestedModel, prompt, options)
